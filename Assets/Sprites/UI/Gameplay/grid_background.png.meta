@@ -116,20 +116,20 @@ TextureImporter:
       name: grid_background_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 66
-        height: 66
+        x: 1
+        y: 1
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 0a64251cd146fc9a0800000000000000
-      internalID: -6210635282160400736
+      spriteID: a69a1ebf99ffc427fb8dae0001e54b6b
+      internalID: 759090064
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 18ab1640296a04964ba0bdf288abce2b
     internalID: 0
     vertices: []
     indices: 
@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      grid_background_0: 759090064
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

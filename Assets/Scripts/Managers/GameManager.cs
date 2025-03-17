@@ -1,0 +1,29 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GameManager : Singleton<GameManager>
+{
+    private GameGrid gameGrid;
+    private GridItemPool itemPool;
+
+    [SerializeField]
+    private Vector2Int gridDimensions;
+    private void Start()
+    {
+        gameGrid = (GameGrid) GameGrid.Instance;
+        itemPool = (GridItemPool) GridItemPool.Instance;
+
+        StartCoroutine(Setup());
+    }
+
+    private IEnumerator Setup() {
+        // In the worst case, we will need two times of the grid size
+        itemPool.PoolObjects(2 * gridDimensions.x * gridDimensions.y);
+        gameGrid.InitializeGrid(gridDimensions);
+
+        yield return null;
+
+        StartCoroutine(gameGrid.PopulateGrid());
+    }
+}
