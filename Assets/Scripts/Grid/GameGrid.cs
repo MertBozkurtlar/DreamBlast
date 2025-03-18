@@ -12,6 +12,7 @@ public class GameGrid : GridSystem<GridItem>
     [SerializeField]
     private float paddingPercent;
     private float gridScale;
+    private Dictionary<GridItem, List<GridItem>> cachedGroups = new Dictionary<GridItem, List<GridItem>>();
 
     private void Start()
     {
@@ -31,9 +32,10 @@ public class GameGrid : GridSystem<GridItem>
         // since the original "width" of the items is 1.
         gridScale = Mathf.Min((cameraWidth * (1 - paddingPercent))/ gridWidth, (cameraHeight * (1 - paddingPercent))/ gridHeight);
         gridScale = Mathf.Min(gridScale, 1);
+        // If there is no reason to scale down, I leave it at 1
         transform.localScale = new Vector3(gridScale, gridScale, 1);
 
-        // Set the position so that the grid is centered in the camera
+        // Set the position so that the grid is centered
         transform.position = new Vector3(-(gridWidth/2) * gridScale, -(gridHeight/2) * gridScale, 0);
     }
 
@@ -64,6 +66,7 @@ public class GameGrid : GridSystem<GridItem>
 
     public IEnumerator PopulateGrid()
     {     
+        // TODO: I need to seperate the data from the render so I can run the UpdateAllGroups in parallel
         // Populate the grid
         GridItem item;
 
@@ -72,9 +75,11 @@ public class GameGrid : GridSystem<GridItem>
             {
                 item = itemPool.GetRandomItem();
                 PutItemAt(item, x, y);
-
-                yield return new WaitForSeconds(0.1f);
+                yield return 0.02f;
             }
+
+        yield return null;
+        UpdateAllGroups();
     }
 
     private void OnItemClicked(GridItem item)
@@ -87,53 +92,20 @@ public class GameGrid : GridSystem<GridItem>
             return;
         }
 
+
         StartCoroutine(Match(item));
     }
 
     private IEnumerator Match(GridItem item){
-        // Check for matches
-        List<GridItem> matches = MatchCheck(item);
-        yield return null;
-
-        if (matches.Count >= matchCount)
-        {   
-            // TODO: Play a match animation
-            // Remove the matches
-            RemoveMatches(matches);
-        }
-        yield return null;
-    }
-
-    private List<GridItem> MatchCheck(GridItem item){
-        Debug.Log("Checking Matches for item at position: " + item.GridPosition);
-
-        // Use Breadth First Search to find all items that are connected to the clicked item
-        // and have the same type.
-        HashSet<GridItem> visited = new HashSet<GridItem>();
-        Queue<GridItem> queue = new Queue<GridItem>();
-        List<GridItem> matches = new List<GridItem>();
-
-        // Add the clicked item to the queue and visited
-        queue.Enqueue(item);
-        visited.Add(item);
-        matches.Add(item);
-
-        while(queue.Count > 0)
+        List<GridItem> group = GetConnectedGroup(item);
+        if (group.Count >= matchCount)
         {
-            GridItem currentItem = queue.Dequeue();
-            Debug.Log("Checking item at position: " + currentItem.GridPosition);
-
-            // Check all 4 directions
-            CheckDirection(currentItem, queue, matches, visited, Vector2Int.up);
-            CheckDirection(currentItem, queue, matches, visited, Vector2Int.down);
-            CheckDirection(currentItem, queue, matches, visited, Vector2Int.left);
-            CheckDirection(currentItem, queue, matches, visited, Vector2Int.right);
+            RemoveMatches(group);
+            UpdateAllGroups();
         }
-
-        Debug.Log("Matches found: " + matches.Count);
-        Debug.Log("Visited: " + visited.Count);
-        return matches;
+        yield return null;
     }
+
 
     private void RemoveMatches(List<GridItem> matches){
         foreach(GridItem match in matches)
@@ -141,33 +113,76 @@ public class GameGrid : GridSystem<GridItem>
             RemoveItemAt(match.GridPosition);
         }
     }   
+    /*
+    * I have implemented a cache mechanism to cache all connected items with the same type.
+    * This way I can share the functionality between the Matching and the Special Eligibility checks.
+    *
+    * It is kind of similar to an Union-Find, but I am still using a BFS and just caching the results.
+    */
+      public List<GridItem> GetConnectedGroup(GridItem startItem)
+    {
+        if (cachedGroups.ContainsKey(startItem))
+            return cachedGroups[startItem];
 
-    private void CheckDirection(GridItem item, Queue<GridItem> queue, List<GridItem> matches, HashSet<GridItem> visited, Vector2Int direction){
-        Vector2Int position = item.GridPosition + direction;
-        if(!BoundsCheck(position))
-        {
-            return;
-        }   
+        List<GridItem> group = new List<GridItem>();
+        HashSet<GridItem> visited = new HashSet<GridItem>();
+        Queue<GridItem> queue = new Queue<GridItem>();
 
-        // Get the item in the direction    
-        GridItem itemInDirection = GetItemAt(position);
-        if(itemInDirection == null)
+        queue.Enqueue(startItem);
+        visited.Add(startItem);
+        group.Add(startItem);
+
+        while (queue.Count > 0)
         {
-            return;
+            GridItem current = queue.Dequeue();
+            foreach (Vector2Int dir in new [] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
+            {
+                Vector2Int neighborPos = current.GridPosition + dir;
+                if (!BoundsCheck(neighborPos))
+                    continue;
+
+                GridItem neighbor = GetItemAt(neighborPos);
+                if (neighbor != null && neighbor.Type == startItem.Type && !visited.Contains(neighbor))
+                {
+                    visited.Add(neighbor);
+                    group.Add(neighbor);
+                    queue.Enqueue(neighbor);
+                }
+            }
         }
-        if (visited.Contains(itemInDirection))
-        {
-            return;
-        } 
-        
-        visited.Add(itemInDirection);
 
-        // If the item is a match, add it to the queue
-        if(itemInDirection.Type == item.Type)
+        cachedGroups[startItem] = group;
+        return group;
+    }
+
+    public void UpdateAllGroups()
+    {
+        cachedGroups.Clear();
+        HashSet<GridItem> processed = new HashSet<GridItem>();
+
+        for (int y = 0; y < Dimensions.y; y++)
         {
-            queue.Enqueue(itemInDirection);
-            matches.Add(itemInDirection);
+            for (int x = 0; x < Dimensions.x; x++)
+            {
+                GridItem item = GetItemAt(new Vector2Int(x, y));
+                if (item == null)
+                    continue;
+
+                if (processed.Contains(item))
+                    continue;
+
+                List<GridItem> group = GetConnectedGroup(item);
+                processed.UnionWith(group);
+                cachedGroups[item] = group;
+
+                foreach (var member in group)
+                {
+                    member.checkSpecialEligibility(group.Count);
+                }
+            }
         }
     }
+
+  
     
 }

@@ -5,4 +5,5 @@ public class CubeType : ScriptableObject
 {
     public string typeName;
     public Sprite defaultSprite;
+    public Sprite rocketSprite;
 }

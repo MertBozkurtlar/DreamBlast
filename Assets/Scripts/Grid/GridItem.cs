@@ -35,7 +35,7 @@ public class GridItem : MonoBehaviour
     }
 
     private void Awake()
-    {
+    {   
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
@@ -47,13 +47,24 @@ public class GridItem : MonoBehaviour
         }
     }
 
-
     void OnMouseDown()
     {
         itemClicked?.Invoke(this);
     }
-    
 
+    public void checkSpecialEligibility(int groupSize)
+    {
+        // This function can be extended to check for other special items
+        // For now, I only check the rocket because it is the only one
+        if (groupSize >= 4)
+        {
+            spriteRenderer.sprite = type.rocketSprite;
+        }
+        else
+        {
+            spriteRenderer.sprite = type.defaultSprite;
+        }
+    }
 
     public override string ToString()
     {

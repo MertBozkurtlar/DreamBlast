@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   typeName: Blue
   defaultSprite: {fileID: -2615874204119335, guid: 5068bf3be30414157970526b132cad50, type: 3}
+  rocketSprite: {fileID: 8853254876290271475, guid: be36a2fc7c02d41b0b54fa70d8b2111b, type: 3}
