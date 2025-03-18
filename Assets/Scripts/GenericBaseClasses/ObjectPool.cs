@@ -67,6 +67,7 @@ public abstract class ObjectPool<T> : Singleton<ObjectPool<T>> where T : MonoBeh
         }
 
         // Return the object to the available pool
+        toBeReturned.gameObject.transform.SetParent(transform);
         toBeReturned.gameObject.SetActive(false);
     }
 }

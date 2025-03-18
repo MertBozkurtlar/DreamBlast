@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5031ee5b433e540c18a6c69e6855d672, type: 3}
   m_Name: Green
   m_EditorClassIdentifier: 
-  typeName: 
-  defaultSprite: {fileID: 0}
+  typeName: Green
+  defaultSprite: {fileID: -6099873399732076034, guid: c48510332a5224436bbe6bfccc00c726, type: 3}

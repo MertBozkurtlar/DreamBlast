@@ -1,9 +1,26 @@
+using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(SpriteRenderer))]
 public class GridItem : MonoBehaviour
 {    
+    // Delegates the matching logic to the GameGrid
+    public Action<GridItem> itemClicked;
     private CubeType type;
+    private SpriteRenderer spriteRenderer;
+    private Vector2Int gridPosition;
+    public Vector2Int GridPosition
+    {
+        get
+        {
+            return gridPosition;
+        }
+    }
+    public void SetGridPosition(Vector2Int position)
+    {
+        gridPosition = position;
+    }
     public CubeType Type
     {
         get
@@ -17,8 +34,6 @@ public class GridItem : MonoBehaviour
         spriteRenderer.sprite = type.defaultSprite;
     }
 
-    private SpriteRenderer spriteRenderer;
-
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -31,6 +46,15 @@ public class GridItem : MonoBehaviour
             spriteRenderer.sprite = type.defaultSprite;
         }
     }
+
+
+    void OnMouseDown()
+    {
+        itemClicked?.Invoke(this);
+    }
+    
+
+
     public override string ToString()
     {
         return gameObject.name;

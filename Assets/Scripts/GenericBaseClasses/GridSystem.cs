@@ -3,7 +3,7 @@ using UnityEngine;
 
 public abstract class GridSystem<T> : Singleton<GridSystem<T>>
 {
-    private T[,] gridData;
+    protected T[,] gridData;
 
     private Vector2Int gridDimensions = new Vector2Int(1, 1);
 
@@ -68,7 +68,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
     }
 
     //  put an item on the grid
-    public bool PutItemAt(T item, int x, int y, bool allowOverwrite = false)
+    public virtual bool PutItemAt(T item, int x, int y, bool allowOverwrite = false)
     {
         if(!BoundsCheck(x, y))
             Debug.LogError("(" + x + ", " + y + ") is not on the grid.");
@@ -97,7 +97,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
     }
 
     //  remove an item from the grid, also return it in case we want it
-    public T RemoveItemAt(int x, int y)
+    public virtual T RemoveItemAt(int x, int y)
     {
         if(!BoundsCheck(x, y))
             Debug.LogError("(" + x + ", " + y + ") is not on the grid.");
