@@ -54,7 +54,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
         return IsEmpty(position.x, position.y);
     }
 
-    public virtual bool PutItemAt(T item, int x, int y, bool allowOverwrite = false)
+    public bool PutItemAt(T item, int x, int y, bool allowOverwrite = false)
     {
         if(!BoundsCheck(x, y))
             Debug.LogError("(" + x + ", " + y + ") is not on the grid.");
@@ -83,7 +83,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
     }
 
     //  remove an item from the grid, also return it in case we want it
-    public virtual T RemoveItemAt(int x, int y)
+    public T RemoveItemAt(int x, int y)
     {
         if(!BoundsCheck(x, y))
             Debug.LogError("(" + x + ", " + y + ") is not on the grid.");
@@ -109,6 +109,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
             return false;
 
         gridData[x2, y2] = RemoveItemAt(x1, y1);
+        Debug.Log("Moved item from (" + x1 + ", " + y1 + ") to (" + x2 + ", " + y2 + ")");
         return true;
     }
     public bool MoveItemTo(Vector2Int position1, Vector2Int position2, bool allowOverwrite = false)

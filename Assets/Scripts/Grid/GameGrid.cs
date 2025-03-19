@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using DG.Tweening;
 public class GameGrid : GridSystem<GridItem>
 {
     private GridItemPool itemPool;
     [SerializeField] private int matchCount;
+    [SerializeField] private int offScreenOffset;
     [SerializeField] private Vector2 itemOffset;
     [SerializeField] private float paddingPercent;
     private float gridScale;
@@ -36,46 +37,50 @@ public class GameGrid : GridSystem<GridItem>
         transform.position = new Vector3(-(gridWidth/2) * gridScale, -(gridHeight/2) * gridScale, 0);
     }
 
-    public override bool PutItemAt(GridItem item, int x, int y, bool allowOverwrite = false)
-    {
-        bool success = base.PutItemAt(item, x, y, allowOverwrite);
-        if(success)
-        {
-            item.gameObject.transform.SetParent(transform);
-            item.gameObject.transform.localScale = new Vector3(1, 1, 1);
-            item.gameObject.name = "o";
-            item.gameObject.SetActive(true);
-            item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
-            item.gameObject.transform.position = transform.position + new Vector3(gridScale/2 + x * itemOffset.x * gridScale, gridScale/2 + y * itemOffset.y * gridScale, 0);
-            item.SetGridPosition(new Vector2Int(x, y));
-            item.itemClicked += OnItemClicked;
-        }
-        return success;
+    public Vector3 GridToWorldPosition(int x, int y){
+        return transform.position + new Vector3(gridScale/2 + x * itemOffset.x * gridScale, gridScale/2 + y * itemOffset.y * gridScale, 0);
     }
 
-    public override GridItem RemoveItemAt(int x, int y)
+    public void MoveGameItem(GridItem item, int x, int y){
+        Vector3 targetPosition = GridToWorldPosition(x, y);
+        item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
+        item.gameObject.transform.DOKill();
+        item.gameObject.transform.DOMove(targetPosition, 1f).SetEase(Ease.OutBounce);
+    }
+
+    public GridItem RemoveGameItem(GridItem item)
     {
-        GridItem item = base.RemoveItemAt(x, y);
+        RemoveItemAt(item.GridPosition);
         item.itemClicked -= OnItemClicked;
         itemPool.ReturnObjectToPool(item);
         return item;
     }
 
-    public IEnumerator PopulateGrid()
+    public void PopulateGrid()
     {     
-        // TODO: I need to seperate the data from the render so I can run the UpdateAllGroups in parallel
-        // Populate the grid
         GridItem item;
 
         for(int y = 0; y < GridDimensions.y; y++)
             for(int x = 0; x < GridDimensions.x; x++)
             {
-                item = itemPool.GetRandomItem();
-                PutItemAt(item, x, y);
-                yield return 0.02f;
-            }
+                if(IsEmpty(x,y)){
+                    item = itemPool.GetRandomItem();
+                    bool success = PutItemAt(item, x, y);
+                    if(success)
+                    {
+                        item.gameObject.transform.SetParent(transform);
+                        item.gameObject.transform.localScale = new Vector3(1, 1, 1);
+                        item.SetGridPosition(new Vector2Int(x, y));
+                        item.itemClicked += OnItemClicked;
 
-        yield return null;
+                        Vector3 targetPosition = GridToWorldPosition(x, y);
+                        item.gameObject.transform.position = targetPosition + new Vector3(0, offScreenOffset, 0);
+                        item.gameObject.SetActive(true);
+                        MoveGameItem(item, x, y);
+                    }
+                }
+            }
+        
         UpdateAllGroups();
     }
 
@@ -89,25 +94,55 @@ public class GameGrid : GridSystem<GridItem>
             return;
         }
 
-
-        StartCoroutine(Match(item));
+        Match(item);
     }
-
-    private IEnumerator Match(GridItem item){
+    
+    /*
+    * Run the match logic for the given group of items
+    */
+    private void Match(GridItem item){
         List<GridItem> group = GetConnectedGroup(item);
+        // TODO: If more than 4 items are matched, turn them into a rocket
         if (group.Count >= matchCount)
         {
             RemoveMatches(group);
-            UpdateAllGroups();
+            CollapseItems();
+            PopulateGrid();
         }
-        yield return null;
+        else {
+            if (!DOTween.IsTweening(item.gameObject.transform))
+                item.gameObject.transform.DOShakeRotation(0.2f, Vector3.forward * 15, 20, 1, false, ShakeRandomnessMode.Harmonic);
+        }
     }
-
 
     private void RemoveMatches(List<GridItem> matches){
         foreach(GridItem match in matches)
         {
-            RemoveItemAt(match.GridPosition);
+            RemoveGameItem(match);
+        }
+    }
+
+    private void CollapseItems()
+    {
+        for(int x = 0; x != GridDimensions.x; ++x)
+        {
+            int emptySpot = 0;
+            // Scan from bottom to top, keeping track of the lowest empty spot
+            for(int y = 0; y != GridDimensions.y; ++y)
+            {
+                if(!IsEmpty(x, y))
+                {
+                    if(y != emptySpot)
+                    {
+                        // Move item down to the empty spot
+                        GridItem item = GetItemAt(x, y);
+                        item.SetGridPosition(new Vector2Int(x, emptySpot));
+                        MoveItemTo(x, y, x, emptySpot);
+                        MoveGameItem(item, x, emptySpot);
+                    }
+                    emptySpot++;
+                }
+            }
         }
     }
 

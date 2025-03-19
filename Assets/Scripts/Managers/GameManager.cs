@@ -23,6 +23,13 @@ public class GameManager : Singleton<GameManager>
 
         yield return null;
 
-        StartCoroutine(gameGrid.PopulateGrid());
+        gameGrid.PopulateGrid();
+    }
+
+    public void Reset()
+    {
+        gameGrid.ClearGrid();
+        itemPool.ReturnAllObjectsToPool();
+        gameGrid.PopulateGrid();
     }
 }

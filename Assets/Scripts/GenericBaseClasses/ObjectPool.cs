@@ -70,4 +70,12 @@ public abstract class ObjectPool<T> : Singleton<ObjectPool<T>> where T : MonoBeh
         toBeReturned.gameObject.transform.SetParent(transform);
         toBeReturned.gameObject.SetActive(false);
     }
+
+    public void ReturnAllObjectsToPool()
+    {
+        foreach(T item in pooledObjects)
+        {
+            ReturnObjectToPool(item);
+        }
+    }
 }
