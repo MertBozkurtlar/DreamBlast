@@ -4,13 +4,10 @@ using UnityEngine;
 
 public class GameGrid : GridSystem<GridItem>
 {
-    public GridItemPool itemPool;
-    [SerializeField]
-    private int matchCount;
-    [SerializeField]
-    private Vector2 itemOffset;
-    [SerializeField]
-    private float paddingPercent;
+    private GridItemPool itemPool;
+    [SerializeField] private int matchCount;
+    [SerializeField] private Vector2 itemOffset;
+    [SerializeField] private float paddingPercent;
     private float gridScale;
     private Dictionary<GridItem, List<GridItem>> cachedGroups = new Dictionary<GridItem, List<GridItem>>();
 
@@ -25,8 +22,8 @@ public class GameGrid : GridSystem<GridItem>
         // Set the scale so that the grid fits within the camera bounds with padding
         float cameraHeight = Camera.main.orthographicSize * 2;
         float cameraWidth = cameraHeight * Camera.main.aspect;
-        float gridWidth = Dimensions.x;
-        float gridHeight = Dimensions.y;
+        float gridWidth = GridDimensions.x;
+        float gridHeight = GridDimensions.y;
 
         // Limiting factor is the scale of the grid, which is also the "size" of each item
         // since the original "width" of the items is 1.
@@ -70,8 +67,8 @@ public class GameGrid : GridSystem<GridItem>
         // Populate the grid
         GridItem item;
 
-        for(int y = 0; y < Dimensions.y; y++)
-            for(int x = 0; x < Dimensions.x; x++)
+        for(int y = 0; y < GridDimensions.y; y++)
+            for(int x = 0; x < GridDimensions.x; x++)
             {
                 item = itemPool.GetRandomItem();
                 PutItemAt(item, x, y);
@@ -112,14 +109,15 @@ public class GameGrid : GridSystem<GridItem>
         {
             RemoveItemAt(match.GridPosition);
         }
-    }   
+    }
+
     /*
     * I have implemented a cache mechanism to cache all connected items with the same type.
     * This way I can share the functionality between the Matching and the Special Eligibility checks.
     *
     * It is kind of similar to an Union-Find, but I am still using a BFS and just caching the results.
     */
-      public List<GridItem> GetConnectedGroup(GridItem startItem)
+    public List<GridItem> GetConnectedGroup(GridItem startItem)
     {
         if (cachedGroups.ContainsKey(startItem))
             return cachedGroups[startItem];
@@ -160,9 +158,9 @@ public class GameGrid : GridSystem<GridItem>
         cachedGroups.Clear();
         HashSet<GridItem> processed = new HashSet<GridItem>();
 
-        for (int y = 0; y < Dimensions.y; y++)
+        for (int y = 0; y < GridDimensions.y; y++)
         {
-            for (int x = 0; x < Dimensions.x; x++)
+            for (int x = 0; x < GridDimensions.x; x++)
             {
                 GridItem item = GetItemAt(new Vector2Int(x, y));
                 if (item == null)
@@ -181,8 +179,5 @@ public class GameGrid : GridSystem<GridItem>
                 }
             }
         }
-    }
-
-  
-    
+    }    
 }

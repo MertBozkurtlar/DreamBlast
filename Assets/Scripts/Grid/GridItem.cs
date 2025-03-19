@@ -7,31 +7,18 @@ public class GridItem : MonoBehaviour
 {    
     // Delegates the matching logic to the GameGrid
     public Action<GridItem> itemClicked;
-    private CubeType type;
     private SpriteRenderer spriteRenderer;
-    private Vector2Int gridPosition;
-    public Vector2Int GridPosition
-    {
-        get
-        {
-            return gridPosition;
-        }
-    }
+
+    public Vector2Int GridPosition {get; private set;}
     public void SetGridPosition(Vector2Int position)
     {
-        gridPosition = position;
+        GridPosition = position;
     }
-    public CubeType Type
-    {
-        get
-        {
-            return type;
-        }
-    }
+    public CubeType Type {get; private set;}
     public void SetType(CubeType type)
     {
-        this.type = type;
-        spriteRenderer.sprite = type.defaultSprite;
+        Type = type;
+        spriteRenderer.sprite = Type.defaultSprite;
     }
 
     private void Awake()
@@ -41,9 +28,9 @@ public class GridItem : MonoBehaviour
 
     private void Start()
     {
-        if(type != null)
+        if(Type != null)
         {
-            spriteRenderer.sprite = type.defaultSprite;
+            spriteRenderer.sprite = Type.defaultSprite;
         }
     }
 
@@ -58,11 +45,11 @@ public class GridItem : MonoBehaviour
         // For now, I only check the rocket because it is the only one
         if (groupSize >= 4)
         {
-            spriteRenderer.sprite = type.rocketSprite;
+            spriteRenderer.sprite = Type.rocketSprite;
         }
         else
         {
-            spriteRenderer.sprite = type.defaultSprite;
+            spriteRenderer.sprite = Type.defaultSprite;
         }
     }
 

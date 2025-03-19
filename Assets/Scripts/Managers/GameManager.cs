@@ -4,11 +4,10 @@ using UnityEngine.UI;
 
 public class GameManager : Singleton<GameManager>
 {
+    [SerializeField] private Vector2Int gridDimensions;
+    
     private GameGrid gameGrid;
     private GridItemPool itemPool;
-
-    [SerializeField]
-    private Vector2Int gridDimensions;
     private void Start()
     {
         gameGrid = (GameGrid) GameGrid.Instance;

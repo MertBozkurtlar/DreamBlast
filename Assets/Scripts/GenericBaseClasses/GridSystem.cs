@@ -1,53 +1,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * GridSystem is a generic class that can be used to create a grid of any type.
+ * It provides a way to manage the grid data and operations on the grid.
+ */
 public abstract class GridSystem<T> : Singleton<GridSystem<T>>
 {
     protected T[,] gridData;
 
-    private Vector2Int gridDimensions = new Vector2Int(1, 1);
-
-    public Vector2Int Dimensions
-    {
-        get
-        {
-            return gridDimensions;
-        }
-    }
-
-    private bool isReady;
-
-    public bool IsReady
-    {
-        get
-        {
-            return isReady;
-        }
-    }
+    public Vector2Int GridDimensions {get; private set;}
+    public bool IsReady {get; private set;}
 
     public virtual void InitializeGrid(Vector2Int dimensions)
     {
         if(dimensions.x < 1 || dimensions.y < 1)
             Debug.LogError("Grid dimensions cannot be less than 1.");
 
-        this.gridDimensions = dimensions;
+        GridDimensions = dimensions;
 
         gridData = new T[dimensions.x, dimensions.y];
 
-        isReady = true;
+        IsReady = true;
     }
 
     public void ClearGrid()
     {
-        gridData = new T[gridDimensions.x, gridDimensions.y];
+        gridData = new T[GridDimensions.x, GridDimensions.y];
     }
 
     public bool BoundsCheck(int x, int y)
     {
-        if(!isReady)
+        if(!IsReady)
             Debug.LogError("Grid is not initialized.");
 
-        return x >= 0 && x < gridDimensions.x && y >= 0 && y < gridDimensions.y;
+        return x >= 0 && x < GridDimensions.x && y >= 0 && y < GridDimensions.y;
     }
     public bool BoundsCheck(Vector2Int position)
     {
@@ -59,7 +46,7 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
         if(!BoundsCheck(x, y))
             Debug.LogError("(" + x + ", " + y + ") is not on the grid.");
 
-        //  check if the item is empty
+        //  Checks if the item is empty
         return EqualityComparer<T>.Default.Equals(gridData[x, y], default(T));
 ;    }
     public bool IsEmpty(Vector2Int position)
@@ -67,7 +54,6 @@ public abstract class GridSystem<T> : Singleton<GridSystem<T>>
         return IsEmpty(position.x, position.y);
     }
 
-    //  put an item on the grid
     public virtual bool PutItemAt(T item, int x, int y, bool allowOverwrite = false)
     {
         if(!BoundsCheck(x, y))

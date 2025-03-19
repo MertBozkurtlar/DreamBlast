@@ -1,17 +1,12 @@
 using UnityEngine;
 
 /*
- * This is a tool that can be inherited by any Game Object script,
- * will guarantee that there will only be 1 instance allowed in the scene,
+ * Singleton will guarantee that there will only be 1 instance allowed in the scene,
  * and provide quick access to that instance through the static getter Instance
- * 
- * If you wish to use the functionality of Awake(), use Init() instead
  */
 public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
     private static T instance;
-
-    // getter
     public static T Instance
     {
         get
@@ -23,7 +18,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         }
     }
 
-    // create the reference in Awake()
+    // Create the reference in Awake()
     protected void Awake()
     {
         if(instance != null)
@@ -36,7 +31,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
         Init();
     }
 
-    // destroy the reference in OnDestroy()
+    // Destroy the reference in OnDestroy()
     protected void OnDestroy()
     {
         if(this == instance)

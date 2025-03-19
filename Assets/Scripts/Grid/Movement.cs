@@ -20,8 +20,7 @@ public class Movement : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    private float   speed = 1;
+    [SerializeField] private float   speed = 1;
 
     public float Speed
     {
