@@ -10,8 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5031ee5b433e540c18a6c69e6855d672, type: 3}
-  m_Name: Yellow
+  m_Name: Blue
   m_EditorClassIdentifier: 
-  typeName: Yellow
-  defaultSprite: {fileID: -8425141836431729757, guid: 4276753be98bf4d30abf0bf241483849, type: 3}
-  rocketSprite: {fileID: 6090080599973395561, guid: 465ffbf6cc6244b1a9d62e38a781536e, type: 3}
+  typeName: Blue
+  defaultSprite: {fileID: -2615874204119335, guid: 5068bf3be30414157970526b132cad50, type: 3}
+  rocketSprite: {fileID: 8853254876290271475, guid: be36a2fc7c02d41b0b54fa70d8b2111b, type: 3}
+  matchCount: 2
+  rocketType: {fileID: 11400000, guid: 003752013c8844e0abc9c5544fe55d3c, type: 2}

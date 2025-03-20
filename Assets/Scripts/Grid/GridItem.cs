@@ -8,17 +8,21 @@ public class GridItem : MonoBehaviour
     // Delegates the matching logic to the GameGrid
     public Action<GridItem> itemClicked;
     private SpriteRenderer spriteRenderer;
-
     public Vector2Int GridPosition {get; private set;}
     public void SetGridPosition(Vector2Int position)
     {
         GridPosition = position;
     }
-    public CubeType Type {get; private set;}
-    public void SetType(CubeType type)
+    public GridItemType Type {get; private set;}
+    public void SetType(GridItemType type)
     {
         Type = type;
         spriteRenderer.sprite = Type.defaultSprite;
+    }
+
+    public void SetSprite(Sprite sprite)
+    {
+        spriteRenderer.sprite = sprite;
     }
 
     private void Awake()
@@ -28,7 +32,7 @@ public class GridItem : MonoBehaviour
 
     private void Start()
     {
-        if(Type != null)
+        if(Type != null && spriteRenderer.sprite == null)
         {
             spriteRenderer.sprite = Type.defaultSprite;
         }
@@ -41,16 +45,7 @@ public class GridItem : MonoBehaviour
 
     public void checkSpecialEligibility(int groupSize)
     {
-        // This function can be extended to check for other special items
-        // For now, I only check the rocket because it is the only one
-        if (groupSize >= 4)
-        {
-            spriteRenderer.sprite = Type.rocketSprite;
-        }
-        else
-        {
-            spriteRenderer.sprite = Type.defaultSprite;
-        }
+        Type.checkSpecialEligibility(this, groupSize);
     }
 
     public override string ToString()

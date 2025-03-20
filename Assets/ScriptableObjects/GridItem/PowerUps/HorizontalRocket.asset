@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ffa962e5a1fc475ea1f53eb68a17fef, type: 3}
+  m_Name: HorizontalRocket
+  m_EditorClassIdentifier: 
+  typeName: HorizontalRocket
+  defaultSprite: {fileID: 21300000, guid: 221a1626328c8445aba2d4286366e4f9, type: 3}
+  upgradeCount: 4
+  direction: 1
+  leftDownPart: {fileID: 21300000, guid: ad4f6af9fea284eb8a9646b700da790b, type: 3}
+  rightUpPart: {fileID: 21300000, guid: d2ece4fd6ad6144da899150a89214170, type: 3}
+  smokeParticle: {fileID: 21300000, guid: 8ae7e0baef8854270889c4dfbcc45950, type: 3}
+  startParticle: {fileID: 21300000, guid: 6cef2e0d762254ca3b068c311e110384, type: 3}

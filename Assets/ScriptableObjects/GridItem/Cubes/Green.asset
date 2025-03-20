@@ -15,3 +15,5 @@ MonoBehaviour:
   typeName: Green
   defaultSprite: {fileID: -6099873399732076034, guid: c48510332a5224436bbe6bfccc00c726, type: 3}
   rocketSprite: {fileID: -8149426069742796037, guid: 45491927a4a1d4151b6af680b583bd2a, type: 3}
+  matchCount: 2
+  rocketType: {fileID: 11400000, guid: 003752013c8844e0abc9c5544fe55d3c, type: 2}

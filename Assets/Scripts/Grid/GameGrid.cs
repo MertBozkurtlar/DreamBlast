@@ -5,7 +5,6 @@ using DG.Tweening;
 public class GameGrid : GridSystem<GridItem>
 {
     private GridItemPool itemPool;
-    [SerializeField] private int matchCount;
     [SerializeField] private int offScreenOffset;
     [SerializeField] private Vector2 itemOffset;
     [SerializeField] private float paddingPercent;
@@ -88,41 +87,16 @@ public class GameGrid : GridSystem<GridItem>
     {
         Debug.Log("Item clicked: " + item.GridPosition);
 
-        if(item == null)
+        if (item == null)
         {
             Debug.Log("No item at position: " + item.GridPosition);
             return;
         }
-
-        Match(item);
+        
+        item.Type.OnMatch(item, this);
     }
     
-    /*
-    * Run the match logic for the given group of items
-    */
-    private void Match(GridItem item){
-        List<GridItem> group = GetConnectedGroup(item);
-        // TODO: If more than 4 items are matched, turn them into a rocket
-        if (group.Count >= matchCount)
-        {
-            RemoveMatches(group);
-            CollapseItems();
-            PopulateGrid();
-        }
-        else {
-            if (!DOTween.IsTweening(item.gameObject.transform))
-                item.gameObject.transform.DOShakeRotation(0.2f, Vector3.forward * 15, 20, 1, false, ShakeRandomnessMode.Harmonic);
-        }
-    }
-
-    private void RemoveMatches(List<GridItem> matches){
-        foreach(GridItem match in matches)
-        {
-            RemoveGameItem(match);
-        }
-    }
-
-    private void CollapseItems()
+    public void CollapseItems()
     {
         for(int x = 0; x != GridDimensions.x; ++x)
         {

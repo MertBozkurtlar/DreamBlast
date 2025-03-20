@@ -3,6 +3,7 @@ using UnityEngine;
 public class GridItemPool : ObjectPool<GridItem>
 {
     [SerializeField] private CubeType[] cubeTypes;
+    [SerializeField] private RocketType[] powerUpTypes;
 
     public void RandomizeType(GridItem item)
     {
