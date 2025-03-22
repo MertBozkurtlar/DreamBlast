@@ -16,4 +16,6 @@ MonoBehaviour:
   defaultSprite: {fileID: -2615874204119335, guid: 5068bf3be30414157970526b132cad50, type: 3}
   rocketSprite: {fileID: 8853254876290271475, guid: be36a2fc7c02d41b0b54fa70d8b2111b, type: 3}
   matchCount: 2
-  rocketType: {fileID: 11400000, guid: 003752013c8844e0abc9c5544fe55d3c, type: 2}
+  rocketTypes:
+  - {fileID: 11400000, guid: 003752013c8844e0abc9c5544fe55d3c, type: 2}
+  - {fileID: 11400000, guid: 2691ec885eff643078c5df0e35fdd6a6, type: 2}

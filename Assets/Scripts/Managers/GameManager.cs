@@ -13,7 +13,7 @@ public class GameManager : Singleton<GameManager>
         gameGrid = (GameGrid) GameGrid.Instance;
         itemPool = (GridItemPool) GridItemPool.Instance;
 
-        StartCoroutine(Setup());
+        // StartCoroutine(Setup());
     }
 
     private IEnumerator Setup() {

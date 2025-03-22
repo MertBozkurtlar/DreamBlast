@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: HorizontalRocket
   m_EditorClassIdentifier: 
   typeName: HorizontalRocket
-  defaultSprite: {fileID: 21300000, guid: 221a1626328c8445aba2d4286366e4f9, type: 3}
+  defaultSprite: {fileID: 21300000, guid: 4d1b3ea885067491086f2f6c384f8549, type: 3}
   upgradeCount: 4
-  direction: 1
+  direction: 0
   leftDownPart: {fileID: 21300000, guid: ad4f6af9fea284eb8a9646b700da790b, type: 3}
   rightUpPart: {fileID: 21300000, guid: d2ece4fd6ad6144da899150a89214170, type: 3}
   smokeParticle: {fileID: 21300000, guid: 8ae7e0baef8854270889c4dfbcc45950, type: 3}

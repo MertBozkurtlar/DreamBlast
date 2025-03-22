@@ -4,12 +4,18 @@ using UnityEngine;
 using DG.Tweening;
 public class GameGrid : GridSystem<GridItem>
 {
-    private GridItemPool itemPool;
+    
+    [Header("Grid Settings")]
     [SerializeField] private int offScreenOffset;
     [SerializeField] private Vector2 itemOffset;
     [SerializeField] private float paddingPercent;
+    private GridItemPool itemPool;
     private float gridScale;
     private Dictionary<GridItem, List<GridItem>> cachedGroups = new Dictionary<GridItem, List<GridItem>>();
+    
+    // Event handlers for obstacle destruction and move made
+    public System.Action<string> onObstacleDestroyed;
+    public System.Action onMoveMade;
 
     private void Start()
     {
@@ -42,13 +48,23 @@ public class GameGrid : GridSystem<GridItem>
 
     public void MoveGameItem(GridItem item, int x, int y){
         Vector3 targetPosition = GridToWorldPosition(x, y);
-        item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
         item.gameObject.transform.DOKill();
+        item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
         item.gameObject.transform.DOMove(targetPosition, 1f).SetEase(Ease.OutBounce);
     }
 
     public GridItem RemoveGameItem(GridItem item)
     {
+        if (item.IsObstacle())
+        {
+            string obstacleCode = "";
+            if (item.Type is BoxType) obstacleCode = "bo";
+            else if (item.Type is StoneType) obstacleCode = "s";
+            else if (item.Type is VaseType) obstacleCode = "v";
+            
+            onObstacleDestroyed?.Invoke(obstacleCode);
+        }
+        
         RemoveItemAt(item.GridPosition);
         item.itemClicked -= OnItemClicked;
         itemPool.ReturnObjectToPool(item);
@@ -62,19 +78,11 @@ public class GameGrid : GridSystem<GridItem>
         for(int y = 0; y < GridDimensions.y; y++)
             for(int x = 0; x < GridDimensions.x; x++)
             {
-                if(IsEmpty(x,y)){
+                if(IsEmpty(x,y) && !IsBelowNonFallableItem(x, y)){
                     item = itemPool.GetRandomItem();
-                    bool success = PutItemAt(item, x, y);
+                    bool success = PlaceItemOnGrid(item, x, y, offScreenOffset);
                     if(success)
                     {
-                        item.gameObject.transform.SetParent(transform);
-                        item.gameObject.transform.localScale = new Vector3(1, 1, 1);
-                        item.SetGridPosition(new Vector2Int(x, y));
-                        item.itemClicked += OnItemClicked;
-
-                        Vector3 targetPosition = GridToWorldPosition(x, y);
-                        item.gameObject.transform.position = targetPosition + new Vector3(0, offScreenOffset, 0);
-                        item.gameObject.SetActive(true);
                         MoveGameItem(item, x, y);
                     }
                 }
@@ -83,7 +91,36 @@ public class GameGrid : GridSystem<GridItem>
         UpdateAllGroups();
     }
 
-    private void OnItemClicked(GridItem item)
+     // Places a grid item on the grid at the specified position
+    public bool PlaceItemOnGrid(GridItem item, int x, int y, int offScreenOffset = 0)
+    {
+        // Put the item on the grid
+        if (PutItemAt(item, x, y))
+        {
+            // Set up transform
+            item.gameObject.transform.SetParent(transform);
+            item.gameObject.transform.localScale = new Vector3(1,1,1);
+            item.SetGridPosition(new Vector2Int(x, y));
+            
+            // Connect events
+            item.itemClicked += OnItemClicked;
+            
+            // Position item on the grid
+            Vector3 targetPosition = GridToWorldPosition(x, y);
+            item.gameObject.transform.position = targetPosition + new Vector3(0, offScreenOffset, 0);
+            item.gameObject.SetActive(true);
+            item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
+            return true;
+        }
+        else
+        {
+            Debug.LogError($"Failed to place item at position ({x}, {y})");
+            itemPool.ReturnObjectToPool(item);
+            return false;
+        }
+    }
+
+    public void OnItemClicked(GridItem item)
     {
         Debug.Log("Item clicked: " + item.GridPosition);
 
@@ -106,15 +143,81 @@ public class GameGrid : GridSystem<GridItem>
             {
                 if(!IsEmpty(x, y))
                 {
-                    if(y != emptySpot)
+                    GridItem item = GetItemAt(x, y);
+                    
+                    // Check if this item should be prevented from falling
+                    bool shouldNotFall = !item.CanFall() || IsOnTopOfNonFallableItem(x, y);
+                    
+                    // Only items that can fall should be moved
+                    if (!shouldNotFall)
                     {
-                        // Move item down to the empty spot
-                        GridItem item = GetItemAt(x, y);
-                        item.SetGridPosition(new Vector2Int(x, emptySpot));
-                        MoveItemTo(x, y, x, emptySpot);
-                        MoveGameItem(item, x, emptySpot);
+                        if(y != emptySpot)
+                        {
+                            // Move item down to the empty spot
+                            item.SetGridPosition(new Vector2Int(x, emptySpot));
+                            MoveItemTo(x, y, x, emptySpot);
+                            MoveGameItem(item, x, emptySpot);
+                        }
+                        emptySpot++;
                     }
-                    emptySpot++;
+                    else
+                    {
+                        // If the item can't fall and there's an empty spot below,
+                        // the empty spot should be after this item
+                        if (y > emptySpot)
+                        {
+                            emptySpot = y + 1;
+                        }
+                        else
+                        {
+                            emptySpot++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Add method to apply blast damage to obstacles in adjacent cells
+    public void ApplyBlastDamage(Vector2Int position, int damage)
+    {
+        // Get adjacent positions (not diagonals)
+        Vector2Int[] directions = new Vector2Int[] {
+            Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
+        };
+        
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int adjacentPos = position + dir;
+            if (BoundsCheck(adjacentPos))
+            {
+                GridItem adjacentItem = GetItemAt(adjacentPos);
+                if (adjacentItem != null && adjacentItem.IsObstacle())
+                {
+                    if (adjacentItem.TakeDamage(damage, false))
+                    {
+                        RemoveGameItem(adjacentItem);
+                    }
+                }
+            }
+        }
+    }
+    
+    // Method to reset blast damage flags for vases
+    public void ResetBlastFlags()
+    {
+        for (int y = 0; y < GridDimensions.y; y++)
+        {
+            for (int x = 0; x < GridDimensions.x; x++)
+            {
+                if (!IsEmpty(x, y))
+                {
+                    GridItem item = GetItemAt(new Vector2Int(x, y));
+                    ObstacleData data = item.GetComponent<ObstacleData>();
+                    if (data != null)
+                    {
+                        data.ResetBlastDamage();
+                    }
                 }
             }
         }
@@ -184,9 +287,79 @@ public class GameGrid : GridSystem<GridItem>
 
                 foreach (var member in group)
                 {
-                    member.checkSpecialEligibility(group.Count);
+                    member.CheckSpecialEligibility(group.Count);
                 }
             }
         }
     }    
+
+    // Method to reset rocket damage flags for vases
+    public void ResetRocketDamageFlags()
+    {
+        for (int y = 0; y < GridDimensions.y; y++)
+        {
+            for (int x = 0; x < GridDimensions.x; x++)
+            {
+                if (!IsEmpty(x, y))
+                {
+                    GridItem item = GetItemAt(new Vector2Int(x, y));
+                    ObstacleData data = item.GetComponent<ObstacleData>();
+                    if (data != null)
+                    {
+                        data.ResetRocketDamage();
+                    }
+                }
+            }
+        }
+    }
+
+    // Add method to apply rocket damage to obstacles in its path
+    public void ApplyRocketDamage(List<Vector2Int> positions, int damage)
+    {
+        foreach (Vector2Int pos in positions)
+        {
+            if (BoundsCheck(pos))
+            {
+                GridItem item = GetItemAt(pos);
+                if (item != null && item.IsObstacle())
+                {
+                    if (item.TakeDamage(damage, true))
+                    {
+                        RemoveGameItem(item);
+                    }
+                }
+            }
+        }
+        
+        // Reset rocket damage flags after all damage is applied
+        ResetRocketDamageFlags();
+    }
+
+    // Helper method to check if an item is positioned directly above a non-fallable item
+    private bool IsOnTopOfNonFallableItem(int x, int y)
+    {
+        // If we're at the bottom row, there's nothing below
+        if (y == 0) return false;
+        
+        // Check the cell directly below this one
+        GridItem itemBelow = GetItemAt(x, y - 1);
+        
+        // If there's an item below and it can't fall, this item should also not fall
+        return itemBelow != null && !itemBelow.CanFall();
+    }
+
+    // Helper method to check if a position is below a non-fallable item
+    private bool IsBelowNonFallableItem(int x, int y)
+    {
+        // Check all positions above this one in the same column
+        for (int aboveY = y + 1; aboveY < GridDimensions.y; aboveY++)
+        {
+            GridItem itemAbove = GetItemAt(x, aboveY);
+            if (itemAbove != null && !itemAbove.CanFall())
+            {
+                return true; // Found a non-fallable item above this position
+            }
+        }
+        return false; // No non-fallable items above this position
+    }
 }

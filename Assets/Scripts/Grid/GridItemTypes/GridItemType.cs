@@ -4,16 +4,22 @@ using UnityEngine;
 public enum ItemType
 {
     Cube,
-    PowerUp
+    PowerUp,
+    Obstacle
 }
 
 public abstract class GridItemType : ScriptableObject
 {
-    public string typeName;
-    public Sprite defaultSprite;
     public virtual ItemType itemType { get; }
+    [Tooltip("Display name of this item type")]
+    public string typeName;
     
-    public virtual void checkSpecialEligibility(GridItem item, int groupSize) {}
+    [Tooltip("Default sprite for this item type")]
+    public Sprite defaultSprite;
     
+    // Checks if the item is eligible for upgrade to a special item
+    public virtual void CheckSpecialEligibility(GridItem item, int groupSize) {}
+    
+    // Called when this item is matched by the player
     public virtual void OnMatch(GridItem item, GameGrid grid) {}
 }
