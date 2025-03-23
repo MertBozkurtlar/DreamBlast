@@ -15,8 +15,8 @@ MonoBehaviour:
   typeName: VerticalRocket
   defaultSprite: {fileID: 21300000, guid: 221a1626328c8445aba2d4286366e4f9, type: 3}
   upgradeCount: 4
-  direction: 1
-  leftDownPart: {fileID: 21300000, guid: 59c5351d7166c4030bd12f2fe1df58bb, type: 3}
-  rightUpPart: {fileID: 21300000, guid: c59abbd39953a4ea8b59fdc39e1e3ebe, type: 3}
-  smokeParticle: {fileID: 21300000, guid: 8ae7e0baef8854270889c4dfbcc45950, type: 3}
-  startParticle: {fileID: 21300000, guid: 6cef2e0d762254ca3b068c311e110384, type: 3}
+  isHorizontal: 0
+  leftBottomRocket: {fileID: 5612295454465734115, guid: 7e5ea0b7594544a30851ae7b2017a86c, type: 3}
+  rightTopRocket: {fileID: 6162104285514557650, guid: 962e178a612014fcea633492e7b613f8, type: 3}
+  rocketDuration: 0.5
+  extraDistance: 5

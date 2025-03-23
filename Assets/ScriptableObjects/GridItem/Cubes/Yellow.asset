@@ -19,3 +19,5 @@ MonoBehaviour:
   rocketTypes:
   - {fileID: 11400000, guid: 003752013c8844e0abc9c5544fe55d3c, type: 2}
   - {fileID: 11400000, guid: 2691ec885eff643078c5df0e35fdd6a6, type: 2}
+  destroyParticles: {fileID: 5590039980662098241, guid: c05187dcc4e69449298f7cbdc0004aac, type: 3}
+  destroyParticleMaterial: {fileID: 2100000, guid: 3b8bae73e71b54e108620d974d4913bc, type: 2}

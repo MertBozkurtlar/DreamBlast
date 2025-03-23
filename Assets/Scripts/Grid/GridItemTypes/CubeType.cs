@@ -8,6 +8,8 @@ public class CubeType : GridItemType
     [Tooltip("Sprite for rocket hint")] public Sprite rocketSprite;
     [Tooltip("Group size required to match")] public int matchCount = 2;
     [Tooltip("Rocket types")] public RocketType[] rocketTypes;
+    [Tooltip("Particles to play when the cube is destroyed")] public ParticleSystem destroyParticles;
+    [Tooltip("Material for destroy particles effect")] public Material destroyParticleMaterial;
 
     public override ItemType itemType { get { return ItemType.Cube; } }
 
@@ -48,6 +50,7 @@ public class CubeType : GridItemType
                     match.SetType(rocketTypes[direction]);
                 }
                 else {
+                    // Remove particle playing from here - it will be handled in OnDestroy
                     grid.RemoveGameItem(match);
                 }
             }
@@ -60,6 +63,27 @@ public class CubeType : GridItemType
         {
             item.gameObject.transform.DOShakeRotation(0.2f, Vector3.forward * 15, 20, 1, false,
                 ShakeRandomnessMode.Harmonic);
+        }
+    }
+    
+    public override void OnItemDestroyed(GridItem item, GameGrid grid)
+    {
+        // Play particles when cube is destroyed (by any means)
+        PlayDestroyParticles(item.transform.position);
+    }
+    
+    private void PlayDestroyParticles(Vector3 position)
+    {
+        if (destroyParticles != null)
+        {
+            // Create position with z = -1
+            Vector3 particlePosition = new Vector3(position.x, position.y, -1f);
+            ParticleSystem particles = Object.Instantiate(destroyParticles, particlePosition, Quaternion.identity);
+            particles.GetComponent<ParticleSystemRenderer>().material = destroyParticleMaterial;
+            particles.Play();
+            
+            // Auto-destroy particle system after it finishes
+            Object.Destroy(particles.gameObject, particles.main.duration + particles.main.startLifetime.constantMax);
         }
     }
 }

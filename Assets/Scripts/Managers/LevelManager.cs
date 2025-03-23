@@ -5,7 +5,7 @@ using System.Linq;
 using DG.Tweening;
 using System.Collections;
 using TMPro;
-
+using System;
 // Manages game levels including loading, transitions, and game state
 public class LevelManager : Singleton<LevelManager>
 {
@@ -29,7 +29,7 @@ public class LevelManager : Singleton<LevelManager>
     #endregion
 
     #region State Management
-    private enum GameState
+    public enum GameState
     {
         Playing,
         LevelCompleted,
@@ -37,6 +37,8 @@ public class LevelManager : Singleton<LevelManager>
         Loading
     }
     private GameState currentState = GameState.Playing;
+
+    public GameState CurrentState => currentState;
     #endregion
 
     #region Initialization
@@ -427,16 +429,16 @@ public class LevelManager : Singleton<LevelManager>
         // Don't make state changes if we're already in a transition
         if (currentState != GameState.Playing)
             return;
-            
+
         // Check if all obstacles are cleared
-        if (remainingObstacles <= 0)
+        if (remainingObstacles <= 0) 
         {
             currentState = GameState.LevelCompleted;
             Debug.Log("Level Completed!");
             // TODO: Show level complete UI
             
-            // Load next level immediately
-            LoadNextLevel();
+            // Wait for all animations to complete before loading the next level
+            StartCoroutine(WaitForAnimationsToComplete(LoadNextLevel));
         }
         // Check if out of moves
         else if (remainingMoves <= 0)
@@ -444,10 +446,23 @@ public class LevelManager : Singleton<LevelManager>
             currentState = GameState.GameOver;
             Debug.Log("Game Over - Out of moves!");
             // TODO: Show game over UI
-            
-            // Restart level immediately
-            RestartLevel();
+
+            // Wait for all animations to complete before restarting the level
+            StartCoroutine(WaitForAnimationsToComplete(RestartLevel));
         }
+    }
+
+    // Coroutine to wait until all animations are finished
+    private IEnumerator WaitForAnimationsToComplete(Action callback)
+    {
+        // Wait until all tweens are completed
+        while (DOTween.PlayingTweens()?.Count > 0)
+        {
+            yield return null;
+        }
+        
+        // Call the callback function (LoadNextLevel or RestartLevel)
+        callback?.Invoke();
     }
     #endregion
 

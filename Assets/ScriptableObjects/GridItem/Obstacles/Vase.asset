@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff228517cf91c4f3e8b71ab6ffcd9879, type: 3}
   m_Name: Vase
   m_EditorClassIdentifier: 
-  typeName: 
-  defaultSprite: {fileID: 0}
+  typeName: Vase
+  defaultSprite: {fileID: 21300000, guid: a3e4d9ddc26b44b649b4803361cc9c02, type: 3}
   maxHealth: 2
-  damagedSprite: {fileID: 0}
+  damagedSprite: {fileID: 21300000, guid: bb846e4f7d6264936b42226ead582922, type: 3}
   canFall: 1
+  destroyParticles: {fileID: 5590039980662098241, guid: c05187dcc4e69449298f7cbdc0004aac, type: 3}
+  destroyParticleMaterial: {fileID: 2100000, guid: 3712ec3ccfa154ab9b6c588fa5143768, type: 2}

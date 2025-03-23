@@ -22,4 +22,10 @@ public abstract class GridItemType : ScriptableObject
     
     // Called when this item is matched by the player
     public virtual void OnMatch(GridItem item, GameGrid grid) {}
+    
+    // Called when this item is damaged (e.g., by rocket or other power-up)
+    public virtual void OnDamaged(GridItem item, GameGrid grid, int damage) {}
+    
+    // Called when this item is destroyed (e.g., by rocket, blast damage, or match)
+    public virtual void OnItemDestroyed(GridItem item, GameGrid grid) {}
 }

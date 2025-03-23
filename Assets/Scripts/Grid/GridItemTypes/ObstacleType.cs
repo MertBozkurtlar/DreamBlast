@@ -6,17 +6,20 @@ public abstract class ObstacleType : GridItemType, IDamageable
 {
     public override ItemType itemType { get { return ItemType.Obstacle; } }
     
-    [SerializeField] 
     [Tooltip("Maximum health points of this obstacle")]
-    protected int maxHealth = 1;
+    public int maxHealth = 1;
     
-    [SerializeField]
     [Tooltip("Sprite to display when the obstacle is damaged but not destroyed")]
-    protected Sprite damagedSprite;
+    public Sprite damagedSprite;
 
-    [SerializeField]
     [Tooltip("If true, this obstacle will fall when there's an empty space below")]
-    protected bool canFall = false;
+    public bool canFall = false;
+    
+    [Tooltip("Particle system to play when the obstacle is destroyed")]
+    public ParticleSystem destroyParticles;
+
+    [Tooltip("Material for destroy particles effect")]
+    public Material destroyParticleMaterial;
     
     public int MaxHealth => maxHealth;
     public int CurrentHealth => GetCurrentHealth();
@@ -51,11 +54,34 @@ public abstract class ObstacleType : GridItemType, IDamageable
         // Apply damage
         data.currentHealth = Mathf.Max(0, data.currentHealth - amount);
         
+        // Check if destroyed
+        bool isDestroyed = data.currentHealth <= 0;
+        
         // Return true if the obstacle is destroyed
-        return data.currentHealth <= 0;
+        return isDestroyed;
     }
     
-
+    public override void OnItemDestroyed(GridItem item, GameGrid grid)
+    {
+        // Play particles when obstacle is destroyed (by any means)
+        PlayDestroyParticles(item.transform.position);
+    }
+    
+    protected void PlayDestroyParticles(Vector3 position)
+    {
+        if (destroyParticles != null)
+        {
+            // Create position with z = -1
+            Vector3 particlePosition = new Vector3(position.x, position.y, -1f);
+            ParticleSystem particles = Object.Instantiate(destroyParticles, particlePosition, Quaternion.identity);
+            particles.GetComponent<ParticleSystemRenderer>().material = destroyParticleMaterial;
+            particles.Play();
+            
+            // Auto-destroy particle system after it finishes
+            Object.Destroy(particles.gameObject, particles.main.duration + particles.main.startLifetime.constantMax);
+        }
+    }
+    
     public virtual void UpdateVisuals(GridItem item)
     {
         // Get the instance-specific data

@@ -65,6 +65,12 @@ public class GameGrid : GridSystem<GridItem>
             onObstacleDestroyed?.Invoke(obstacleCode);
         }
         
+        // Call OnItemDestroyed method on the item's type before removing it
+        if (item.Type != null)
+        {
+            item.Type.OnItemDestroyed(item, this);
+        }
+        
         RemoveItemAt(item.GridPosition);
         item.itemClicked -= OnItemClicked;
         itemPool.ReturnObjectToPool(item);
@@ -129,6 +135,9 @@ public class GameGrid : GridSystem<GridItem>
             Debug.Log("No item at position: " + item.GridPosition);
             return;
         }
+
+        if(LevelManager.Instance.CurrentState != LevelManager.GameState.Playing)
+            return;
         
         item.Type.OnMatch(item, this);
     }

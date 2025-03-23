@@ -12,8 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b06ab28bf565b4a45976e9b870583fdb, type: 3}
   m_Name: Box
   m_EditorClassIdentifier: 
-  typeName: 
-  defaultSprite: {fileID: 0}
+  typeName: Box
+  defaultSprite: {fileID: 21300000, guid: 183148b1cb3bd4d0ab50199893a20350, type: 3}
   maxHealth: 1
   damagedSprite: {fileID: 0}
   canFall: 0
+  destroyParticles: {fileID: 5590039980662098241, guid: c05187dcc4e69449298f7cbdc0004aac, type: 3}
+  destroyParticleMaterial: {fileID: 2100000, guid: 56b780c0429b04c48905b0e91cd65ab4, type: 2}

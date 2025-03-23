@@ -15,8 +15,8 @@ MonoBehaviour:
   typeName: HorizontalRocket
   defaultSprite: {fileID: 21300000, guid: 4d1b3ea885067491086f2f6c384f8549, type: 3}
   upgradeCount: 4
-  direction: 0
-  leftDownPart: {fileID: 21300000, guid: ad4f6af9fea284eb8a9646b700da790b, type: 3}
-  rightUpPart: {fileID: 21300000, guid: d2ece4fd6ad6144da899150a89214170, type: 3}
-  smokeParticle: {fileID: 21300000, guid: 8ae7e0baef8854270889c4dfbcc45950, type: 3}
-  startParticle: {fileID: 21300000, guid: 6cef2e0d762254ca3b068c311e110384, type: 3}
+  isHorizontal: 1
+  leftBottomRocket: {fileID: 1196828277073439537, guid: f5acf9229a8fa43659c267ee182610d2, type: 3}
+  rightTopRocket: {fileID: 6914876685168000637, guid: a800d838d587345e9a1be73435909d35, type: 3}
+  rocketDuration: 0.5
+  extraDistance: 5
