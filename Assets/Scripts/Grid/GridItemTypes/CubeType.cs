@@ -97,7 +97,9 @@ public class CubeType : GridItemType
         else if (!DOTween.IsTweening(item.gameObject.transform))
         {
             item.gameObject.transform.DOShakeRotation(0.2f, Vector3.forward * 15, 20, 1, false,
-                ShakeRandomnessMode.Harmonic);
+                ShakeRandomnessMode.Harmonic).OnComplete(() => {
+                grid.SetProcessingState(false);
+            });
         }
     }
     

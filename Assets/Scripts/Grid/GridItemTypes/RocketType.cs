@@ -16,13 +16,124 @@ public class RocketType : GridItemType
     public override void OnMatch(GridItem item, GameGrid grid)
     {
         grid.onMoveMade?.Invoke();
-        ActivateRocket(item, grid);
+        
+        // Check for adjacent rockets
+        if (HasAdjacentRocket(item, grid))
+        {
+            ActivateRocketCombo(item, grid);
+        }
+        else
+        {
+            ActivateRocket(item, grid);
+        }
     }
     
     public override void OnDamaged(GridItem item, GameGrid grid, int damage)
     {
         // When damaged by another rocket, this rocket should also explode
         ActivateRocket(item, grid);
+    }
+    
+    private bool HasAdjacentRocket(GridItem item, GameGrid grid)
+    {
+        Vector2Int[] directions = new Vector2Int[] 
+        {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+        
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int adjacentPos = item.GridPosition + dir;
+            if (grid.BoundsCheck(adjacentPos))
+            {
+                GridItem adjacentItem = grid.GetItemAt(adjacentPos);
+                if (adjacentItem != null && adjacentItem.Type is RocketType)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    private void ActivateRocketCombo(GridItem item, GameGrid grid)
+    {
+        // First, remove the clicked rocket and any adjacent rockets
+        grid.RemoveGameItem(item);
+        Vector2Int[] directions = new Vector2Int[] 
+        {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+        
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int adjacentPos = item.GridPosition + dir;
+            if (grid.BoundsCheck(adjacentPos))
+            {
+                GridItem adjacentItem = grid.GetItemAt(adjacentPos);
+                if (adjacentItem != null && adjacentItem.Type is RocketType)
+                {
+                    grid.RemoveGameItem(adjacentItem);
+                }
+            }
+        }
+
+        // Clear the 3x3 area first
+        for (int x = -1; x <= 1; x++)
+        {
+            for (int y = -1; y <= 1; y++)
+            {
+                Vector2Int pos = item.GridPosition + new Vector2Int(x, y);
+                if (grid.BoundsCheck(pos))
+                {
+                    GridItem existingItem = grid.GetItemAt(pos);
+                    if (existingItem != null)
+                    {
+                        grid.RemoveGameItem(existingItem);
+                    }
+                }
+            }
+        }
+
+        // Create the cross pattern:
+        // - H -     (top row: horizontal rocket in middle)
+        // V V+H V   (middle row: vertical rockets in all positions, horizontal in middle)
+        // - H -     (bottom row: horizontal rocket in middle)
+
+        // Create horizontal rockets in top, middle, and bottom rows (middle position only)
+        for (int y = -1; y <= 1; y++)
+        {
+            Vector2Int pos = item.GridPosition + new Vector2Int(0, y);
+            if (grid.BoundsCheck(pos))
+            {
+                GridItem horizontalRocket = ((GridItemPool)GridItemPool.Instance).GetPowerUp("hro");
+                if (grid.PlaceItemOnGrid(horizontalRocket, pos.x, pos.y))
+                {
+                    ((RocketType)horizontalRocket.Type).ActivateRocket(horizontalRocket, grid);
+                }
+            }
+        }
+
+        // Create vertical rockets in the middle row (left, center, right positions)
+        for (int x = -1; x <= 1; x++)
+        {
+            Vector2Int pos = item.GridPosition + new Vector2Int(x, 0);
+            if (grid.BoundsCheck(pos))
+            {
+                GridItem verticalRocket = ((GridItemPool)GridItemPool.Instance).GetPowerUp("vro");
+                if (grid.PlaceItemOnGrid(verticalRocket, pos.x, pos.y))
+                {
+                    ((RocketType)verticalRocket.Type).ActivateRocket(verticalRocket, grid);
+                }
+            }
+        }
     }
     
     private void ActivateRocket(GridItem item, GameGrid grid)

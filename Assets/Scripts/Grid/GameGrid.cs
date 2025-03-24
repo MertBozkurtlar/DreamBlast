@@ -20,6 +20,13 @@ public class GameGrid : GridSystem<GridItem>
     public Action<string> onObstacleDestroyed;
     public Action onMoveMade;
 
+    private bool isProcessingMatches = false;
+
+    public void SetProcessingState(bool isProcessing)
+    {
+        isProcessingMatches = isProcessing;
+    }
+
     private void Start()
     {
         itemPool = (GridItemPool) GridItemPool.Instance;
@@ -59,7 +66,15 @@ public class GameGrid : GridSystem<GridItem>
         Vector3 targetPosition = GridToWorldPosition(x, y);
         item.gameObject.transform.DOKill();
         item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
-        item.gameObject.transform.DOMove(targetPosition, 1f).SetEase(Ease.OutBounce);
+        item.gameObject.transform.DOMove(targetPosition, 1f)
+            .SetEase(Ease.OutBounce)
+            .OnComplete(() => {
+                // Check if this was the last animation
+                if (DOTween.PlayingTweens()?.Count <= 1) // Use 1 because this tween is still counted
+                {
+                    isProcessingMatches = false;
+                }
+            });
     }
 
     public GridItem RemoveGameItem(GridItem item)
@@ -104,6 +119,12 @@ public class GameGrid : GridSystem<GridItem>
             }
         
         UpdateAllGroups();
+        
+        // After populating and starting animations, check if there are any animations playing
+        if (DOTween.PlayingTweens()?.Count == 0)
+        {
+            isProcessingMatches = false;
+        }
     }
 
      // Places a grid item on the grid at the specified position
@@ -147,6 +168,18 @@ public class GameGrid : GridSystem<GridItem>
 
         if(LevelManager.Instance.CurrentState != LevelManager.GameState.Playing)
             return;
+            
+        if (isProcessingMatches || DOTween.PlayingTweens()?.Count > 0)
+        {
+            Debug.Log("Cannot make new matches while processing previous ones");
+            return;
+        }
+        
+        // Only set processing flag for matchable items (not obstacles)
+        if (item.Type.itemType != ItemType.Obstacle)
+        {
+            isProcessingMatches = true;
+        }
         
         item.Type.OnMatch(item, this);
     }
@@ -193,6 +226,12 @@ public class GameGrid : GridSystem<GridItem>
                     }
                 }
             }
+        }
+        
+        // After collapse is done, check if there are any animations playing
+        if (DOTween.PlayingTweens()?.Count == 0)
+        {
+            isProcessingMatches = false;
         }
     }
     

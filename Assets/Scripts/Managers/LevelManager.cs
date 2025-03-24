@@ -410,14 +410,20 @@ public class LevelManager : Singleton<LevelManager>
         if (currentState != GameState.Playing)
             return;
 
+        // Wait for all animations to complete before checking game state
+        if (DOTween.PlayingTweens()?.Count > 0)
+        {
+            StartCoroutine(WaitAndCheckGameState());
+            return;
+        }
+
         // Check if all obstacles are cleared
         if (remainingObstacles <= 0) 
         {
             currentState = GameState.LevelCompleted;
             Debug.Log("Level Completed!");
             
-            // Wait for all animations to complete before loading the next level
-            StartCoroutine(WaitForAnimationsToComplete(() => celebrationParticles.Play()));
+            celebrationParticles.Play();
             StartCoroutine(WaitForAnimationsToComplete(LoadNextLevel));
         }
         // Check if out of moves
@@ -425,9 +431,20 @@ public class LevelManager : Singleton<LevelManager>
         {
             currentState = GameState.GameOver;
             Debug.Log("Game Over - Out of moves!");
-            // Wait for all animations to complete before restarting the level
-            StartCoroutine(WaitForAnimationsToComplete(() => gameOverUI.SetActive(true)));
+            gameOverUI.SetActive(true);
         }
+    }
+
+    private IEnumerator WaitAndCheckGameState()
+    {
+        // Wait until all tweens are completed
+        while (DOTween.PlayingTweens()?.Count > 0)
+        {
+            yield return null;
+        }
+        
+        // Recheck the game state after all animations are done
+        CheckGameState();
     }
 
     // Coroutine to wait until all animations are finished
@@ -439,7 +456,7 @@ public class LevelManager : Singleton<LevelManager>
             yield return null;
         }
         
-        // Call the callback function (LoadNextLevel or RestartLevel)
+        // Call the callback function
         callback?.Invoke();
     }
     #endregion
