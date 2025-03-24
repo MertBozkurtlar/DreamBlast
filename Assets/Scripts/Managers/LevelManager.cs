@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using DG.Tweening;
 using System.Collections;
 using TMPro;
@@ -10,13 +8,14 @@ using System;
 public class LevelManager : Singleton<LevelManager>
 {
     #region Serialized Fields
+    [Header("UI References")]
+    [SerializeField] private GameUIController gameUIController;
+    [SerializeField] private ParticleSystem celebrationParticles;
+    [SerializeField] private GameObject gameOverUI;
+
     [Header("Level Configuration")]
     [SerializeField] private TextAsset[] levelJsonFiles;
     [SerializeField] private int currentLevel = 0;
-    
-    [Header("UI References")]
-    [SerializeField] private TextMeshProUGUI moveCountText;
-    [SerializeField] private TextMeshProUGUI levelNumberText;
     #endregion
 
     #region Private Fields
@@ -193,7 +192,8 @@ public class LevelManager : Singleton<LevelManager>
         PlaceGridItems(levelData);
         
         // Update UI
-        UpdateUI(levelData);
+        gameUIController.UpdateMoveCountUI(remainingMoves);
+        gameUIController.UpdateGoalUI(obstacleCounters);
         
         Debug.Log($"Level {levelData.level_number} loaded. Obstacles: {remainingObstacles}, Moves: {remainingMoves}");
     }
@@ -202,18 +202,6 @@ public class LevelManager : Singleton<LevelManager>
     {
         ResetObstacleCounts();
         remainingMoves = levelData.move_count;
-    }
-    
-    private void UpdateUI(LevelData levelData)
-    {
-        // Update move count UI
-        UpdateMoveCountUI();
-        
-        // Update level number UI
-        if (levelNumberText != null)
-        {
-            levelNumberText.text = "Level " + levelData.level_number;
-        }
     }
     #endregion
 
@@ -321,6 +309,7 @@ public class LevelManager : Singleton<LevelManager>
             
             // Check win condition
             CheckGameState();
+            gameUIController.UpdateGoalUI(obstacleCounters);
         }
     }
     #endregion
@@ -410,20 +399,11 @@ public class LevelManager : Singleton<LevelManager>
     public void OnMoveMade()
     {
         remainingMoves--;
-        UpdateMoveCountUI();
+        gameUIController.UpdateMoveCountUI(remainingMoves);
         
         // Check if game is over after move
         CheckGameState();
     }
-    
-    private void UpdateMoveCountUI()
-    {
-        if (moveCountText != null)
-        {
-            moveCountText.text = "Moves: " + remainingMoves;
-        }
-    }
-    
     private void CheckGameState()
     {
         // Don't make state changes if we're already in a transition
@@ -435,9 +415,9 @@ public class LevelManager : Singleton<LevelManager>
         {
             currentState = GameState.LevelCompleted;
             Debug.Log("Level Completed!");
-            // TODO: Show level complete UI
             
             // Wait for all animations to complete before loading the next level
+            StartCoroutine(WaitForAnimationsToComplete(() => celebrationParticles.Play()));
             StartCoroutine(WaitForAnimationsToComplete(LoadNextLevel));
         }
         // Check if out of moves
@@ -445,10 +425,8 @@ public class LevelManager : Singleton<LevelManager>
         {
             currentState = GameState.GameOver;
             Debug.Log("Game Over - Out of moves!");
-            // TODO: Show game over UI
-
             // Wait for all animations to complete before restarting the level
-            StartCoroutine(WaitForAnimationsToComplete(RestartLevel));
+            StartCoroutine(WaitForAnimationsToComplete(() => gameOverUI.SetActive(true)));
         }
     }
 
@@ -456,7 +434,7 @@ public class LevelManager : Singleton<LevelManager>
     private IEnumerator WaitForAnimationsToComplete(Action callback)
     {
         // Wait until all tweens are completed
-        while (DOTween.PlayingTweens()?.Count > 0)
+        while (DOTween.PlayingTweens()?.Count > 0 || celebrationParticles.isPlaying)
         {
             yield return null;
         }
@@ -485,6 +463,7 @@ public class LevelManager : Singleton<LevelManager>
     
     public void RestartLevel()
     {
+        gameOverUI.SetActive(false);
         LoadLevelFromJson(levelJsonFiles[currentLevel]);
     }
     
@@ -513,7 +492,7 @@ public class LevelManager : Singleton<LevelManager>
         public string[] grid;
     }
     
-    private class ObstacleCount
+    public class ObstacleCount
     {
         public string Name { get; private set; }
         public int Count { get; private set; }

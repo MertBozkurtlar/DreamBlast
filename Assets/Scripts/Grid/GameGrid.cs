@@ -2,20 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using System;
 public class GameGrid : GridSystem<GridItem>
 {
     
     [Header("Grid Settings")]
     [SerializeField] private int offScreenOffset;
     [SerializeField] private Vector2 itemOffset;
+    [SerializeField] private Vector2 gridOffset;
     [SerializeField] private float paddingPercent;
+    [SerializeField] private SpriteRenderer gridBackground;
     private GridItemPool itemPool;
     private float gridScale;
     private Dictionary<GridItem, List<GridItem>> cachedGroups = new Dictionary<GridItem, List<GridItem>>();
     
     // Event handlers for obstacle destruction and move made
-    public System.Action<string> onObstacleDestroyed;
-    public System.Action onMoveMade;
+    public Action<string> onObstacleDestroyed;
+    public Action onMoveMade;
 
     private void Start()
     {
@@ -39,7 +42,13 @@ public class GameGrid : GridSystem<GridItem>
         transform.localScale = new Vector3(gridScale, gridScale, 1);
 
         // Set the position so that the grid is centered
-        transform.position = new Vector3(-(gridWidth/2) * gridScale, -(gridHeight/2) * gridScale, 0);
+        transform.position = new Vector3(-(gridWidth/2) * gridScale + gridOffset.x, -(gridHeight/2) * gridScale + gridOffset.y, 0);
+
+        // Center the grid background
+        gridBackground.transform.localPosition = new Vector3(gridWidth/2, gridHeight/2, 0);
+
+        // Sliced sprite size
+        gridBackground.size = new Vector2(gridWidth + 0.5f, gridHeight + 0.5f);
     }
 
     public Vector3 GridToWorldPosition(int x, int y){

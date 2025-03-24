@@ -15,6 +15,7 @@ public class RocketType : GridItemType
 
     public override void OnMatch(GridItem item, GameGrid grid)
     {
+        grid.onMoveMade?.Invoke();
         ActivateRocket(item, grid);
     }
     
@@ -140,12 +141,16 @@ public class RocketType : GridItemType
     {
         int center = isHorizontal ? position.x : position.y;
         int length = isHorizontal ? gridDimensions.x : gridDimensions.y;
+        
+        // Calculate delay as a fraction of the total rocket duration
+        float delayPerCell = rocketDuration / (length + extraDistance);
 
         for (int offset = 1; offset < length; offset++)
         {
             int negativePos = center - offset;
             int positivePos = center + offset;
-            float delay = offset * 0.05f;
+
+            float delay = offset * delayPerCell;
 
             if (negativePos >= 0)
             {

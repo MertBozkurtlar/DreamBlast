@@ -50,11 +50,11 @@ TagManager:
   - name: Objects
     uniqueID: 3890801957
     locked: 0
-  - name: Particles
-    uniqueID: 3050042955
-    locked: 0
   - name: UI
     uniqueID: 1881269309
+    locked: 0
+  - name: Particles
+    uniqueID: 3050042955
     locked: 0
   m_RenderingLayers:
   - Default
