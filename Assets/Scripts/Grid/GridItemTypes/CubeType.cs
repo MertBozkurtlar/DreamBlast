@@ -10,6 +10,12 @@ public class CubeType : GridItemType
     [Tooltip("Rocket types")] public RocketType[] rocketTypes;
     [Tooltip("Particles to play when the cube is destroyed")] public ParticleSystem destroyParticles;
     [Tooltip("Material for destroy particles effect")] public Material destroyParticleMaterial;
+    
+    [Header("Animation Settings")]
+    [Tooltip("Distance for cubes to bounce away")] public float bounceDistance = 0.5f;
+    [Tooltip("Duration of the bounce animation")] public float bounceDuration = 0.3f;
+    [Tooltip("Duration of return to center animation")] public float returnDuration = 0.4f;
+    [Tooltip("Duration of merge animation")] public float mergeDuration = 0.2f;
 
     public override ItemType itemType { get { return ItemType.Cube; } }
 
@@ -42,28 +48,96 @@ public class CubeType : GridItemType
             grid.ResetBlastFlags();
             
             // Handle matched items - either upgrade to rocket or remove
-            foreach(GridItem match in group)
+            if (group.Count >= rocketTypes[0].upgradeCount)
             {
-                if (group.Count >= rocketTypes[0].upgradeCount && match == item)
+                // Create sequence for the merge animation
+                Sequence mergeSequence = DOTween.Sequence();
+                
+                // Animate all cubes in the group
+                foreach (GridItem match in group)
                 {
-                    int direction = Random.Range(0, 2);
-                    match.SetType(rocketTypes[direction]);
+                    if (match != item)
+                    {
+                        AnimateCubeMerge(match, item.transform.position, mergeSequence);
+                    }
                 }
-                else {
-                    // Remove particle playing from here - it will be handled in OnDestroy
+                
+                // After all animations complete, upgrade to rocket
+                mergeSequence.OnComplete(() => {
+                    foreach (GridItem match in group)
+                    {
+                        if (match == item)
+                        {
+                            int direction = Random.Range(0, 2);
+                            match.SetType(rocketTypes[direction]);
+                        }
+                        else
+                        {
+                            grid.RemoveGameItem(match);
+                        }
+                    }
+                    
+                    grid.CollapseItems();
+                    grid.PopulateGrid();
+                    grid.onMoveMade?.Invoke();
+                });
+            }
+            else
+            {
+                foreach(GridItem match in group)
+                {
                     grid.RemoveGameItem(match);
                 }
+                
+                grid.CollapseItems();
+                grid.PopulateGrid();
+                grid.onMoveMade?.Invoke();
             }
-            
-            grid.CollapseItems();
-            grid.PopulateGrid();
-            grid.onMoveMade?.Invoke();
         }
         else if (!DOTween.IsTweening(item.gameObject.transform))
         {
             item.gameObject.transform.DOShakeRotation(0.2f, Vector3.forward * 15, 20, 1, false,
                 ShakeRandomnessMode.Harmonic);
         }
+    }
+    
+    private void AnimateCubeMerge(GridItem cube, Vector3 targetPosition, Sequence sequence)
+    {
+        Vector3 originalPos = cube.transform.position;
+        Vector3 bounceDirection = (originalPos - targetPosition).normalized;
+        Vector3 bounceTarget = originalPos + bounceDirection * bounceDistance;
+        
+        // Kill any existing tweens on this cube
+        cube.transform.DOKill();
+        
+        // Store the original sorting order and set to high value
+        SpriteRenderer spriteRenderer = cube.GetComponent<SpriteRenderer>();
+        int originalSortingOrder = spriteRenderer.sortingOrder;
+        spriteRenderer.sortingOrder = 99;
+        
+        // Create a sequence for this specific cube
+        Sequence cubeSequence = DOTween.Sequence();
+        
+        // First bounce out
+        cubeSequence.Append(cube.transform
+            .DOMove(bounceTarget, bounceDuration)
+            .SetEase(Ease.OutQuad));
+            
+        // Then return to center
+        cubeSequence.Append(cube.transform
+            .DOMove(targetPosition, returnDuration)
+            .SetEase(Ease.InQuad));
+            
+        // Reset sorting order when animation completes
+        cubeSequence.OnComplete(() => {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = originalSortingOrder;
+            }
+        });
+            
+        // Join the cube's sequence to the main sequence
+        sequence.Join(cubeSequence);
     }
     
     public override void OnItemDestroyed(GridItem item, GameGrid grid)
