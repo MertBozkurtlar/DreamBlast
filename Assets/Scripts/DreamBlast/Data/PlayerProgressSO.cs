@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "PlayerProgress", menuName = "DreamBlast/Player Progress")]
+[CreateAssetMenu(fileName = "PlayerProgress", menuName = "Player Progress")]
 public class PlayerProgressSO : ScriptableObject
 {
     [SerializeField] private TextAsset[] levelJsonFiles;

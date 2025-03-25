@@ -2,8 +2,7 @@ using UnityEngine;
 using System.Collections;
 using DG.Tweening;
 using DreamBlast.Data;
-using System;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 
 public class GameManager : Singleton<GameManager>
 {
@@ -19,7 +18,7 @@ public class GameManager : Singleton<GameManager>
     private GridItemPool itemPool;
     private int remainingMoves;
     private int remainingObstacles;
-    private System.Collections.Generic.Dictionary<string, DreamBlast.Data.ObstacleCount> obstacleCounters = new System.Collections.Generic.Dictionary<string, DreamBlast.Data.ObstacleCount>();
+    private Dictionary<string, ObstacleCount> obstacleCounters = new Dictionary<string, ObstacleCount>();
     #endregion
 
     #region State Management
@@ -44,7 +43,6 @@ public class GameManager : Singleton<GameManager>
             Debug.LogError("PlayerProgressSO is not assigned to GameManager! Please assign it in the Unity Inspector.");
             return;
         }
-        InitializeObstacleCounters();
     }
 
     private void Start()
@@ -71,6 +69,7 @@ public class GameManager : Singleton<GameManager>
         }
 
         ConnectGridEvents();
+        InitializeObstacleCounters();
         LoadCurrentLevel();
     }
 
@@ -150,6 +149,11 @@ public class GameManager : Singleton<GameManager>
             if (string.IsNullOrEmpty(itemCode)) continue;
 
             GridItem item = CreateItemFromCode(itemCode);
+            // If item is an obstacle, update the obstacle counter
+            if (itemPool.IsObstacleCode(itemCode))
+            {
+                UpdateObstacleCounts(itemCode);
+            }
             if (item != null)
             {
                 gameGrid.PlaceItemOnGrid(item, x, y);
@@ -163,43 +167,25 @@ public class GameManager : Singleton<GameManager>
     {
         GridItem item = null;
 
-        if (IsColorCube(itemCode))
-        {
-            item = itemPool.GetCubeOfType(itemCode);
-        }
-        else if (IsPowerUp(itemCode))
-        {
-            item = itemPool.GetPowerUp(itemCode);
-        }
-        else if (IsObstacle(itemCode))
-        {
-            item = itemPool.GetObstacle(itemCode);
-            UpdateObstacleCounts(itemCode);
-        }
+        item = itemPool.GetItemOfType(itemCode);
 
         return item;
     }
 
-    private bool IsColorCube(string code)
-    {
-        return code == "r" || code == "g" || code == "b" || code == "y" || code == "rand";
-    }
-
-    private bool IsPowerUp(string code)
-    {
-        return code == "hro" || code == "vro";
-    }
-
-    private bool IsObstacle(string code)
-    {
-        return code == "bo" || code == "s" || code == "v";
-    }
 
     private void InitializeObstacleCounters()
     {
-        obstacleCounters.Add("bo", new DreamBlast.Data.ObstacleCount("Box"));
-        obstacleCounters.Add("s", new DreamBlast.Data.ObstacleCount("Stone"));
-        obstacleCounters.Add("v", new DreamBlast.Data.ObstacleCount("Vase"));
+        if (itemPool == null || itemPool.ObstacleTypes == null)
+        {
+            Debug.LogError("Cannot initialize obstacle counters: itemPool or ObstacleTypes is null");
+            return;
+        }
+        
+        obstacleCounters.Clear();
+        foreach (var obstacle in itemPool.ObstacleTypes)
+        {
+            obstacleCounters.Add(obstacle.typeCode, new ObstacleCount(obstacle.typeCode, obstacle.defaultSprite));
+        }
     }
 
     public void InitializeGameState(int moveCount)
@@ -207,6 +193,7 @@ public class GameManager : Singleton<GameManager>
         currentState = GameState.Playing;
         remainingMoves = moveCount;
         gameOverUI.SetActive(false);
+        gameUIController.InstantiateGoalUI(obstacleCounters);
         UpdateUI();
     }
 
@@ -230,7 +217,7 @@ public class GameManager : Singleton<GameManager>
 
     public void OnObstacleDestroyed(string obstacleType)
     {
-        if (obstacleCounters.TryGetValue(obstacleType, out DreamBlast.Data.ObstacleCount counter))
+        if (obstacleCounters.TryGetValue(obstacleType, out ObstacleCount counter))
         {
             counter.Decrease();
             remainingObstacles--;
@@ -312,7 +299,7 @@ public class GameManager : Singleton<GameManager>
 
     public void UpdateObstacleCounts(string obstacleType)
     {
-        if (obstacleCounters.TryGetValue(obstacleType, out DreamBlast.Data.ObstacleCount counter))
+        if (obstacleCounters.TryGetValue(obstacleType, out ObstacleCount counter))
         {
             counter.Increase();
             remainingObstacles++;
@@ -321,9 +308,12 @@ public class GameManager : Singleton<GameManager>
 
     public void ResetObstacleCounts()
     {
-        foreach (var counter in obstacleCounters.Values)
+        if (obstacleCounters != null && obstacleCounters.Count > 0)
         {
-            counter.Reset();
+            foreach (var counter in obstacleCounters.Values)
+            {
+                counter.Reset();
+            }
         }
         remainingObstacles = 0;
     }

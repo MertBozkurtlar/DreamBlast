@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b06ab28bf565b4a45976e9b870583fdb, type: 3}
   m_Name: Box
   m_EditorClassIdentifier: 
-  typeName: Box
+  typeCode: bo
   defaultSprite: {fileID: 21300000, guid: 183148b1cb3bd4d0ab50199893a20350, type: 3}
   maxHealth: 1
   damagedSprite: {fileID: 0}

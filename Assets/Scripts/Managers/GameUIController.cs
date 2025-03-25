@@ -16,43 +16,43 @@ public class GameUIController : MonoBehaviour
     [Header("Move Count UI")]
     [SerializeField] private TextMeshProUGUI moveCountText;
 
-    // This method can be called by the LevelManager or by a GameManager event when the level is loaded or an obstacle changes.
-    public void UpdateGoalUI(Dictionary<string, DreamBlast.Data.ObstacleCount> obstacleCounts)
+    public void InstantiateGoalUI(Dictionary<string, DreamBlast.Data.ObstacleCount> obstacleCounts)
     {
-        // Clear previous items
-        foreach (Transform child in goalPanel)
-        {
-            Destroy(child.gameObject);
-        }
-
-        
         // For each obstacle type, instantiate a new goal item if count > 0.
         foreach (var obstacleCount in obstacleCounts)
         {
             if (obstacleCount.Value.Count > 0)
             {
                 GameObject goalItem = Instantiate(goalItemPrefab, goalPanel);
+                goalItem.name = obstacleCount.Key;
                 
                 Image iconImage = goalItem.GetComponent<Image>();
                 TextMeshProUGUI countText = goalItem.transform.Find("CountText").GetComponent<TextMeshProUGUI>();
 
                 countText.text = obstacleCount.Value.Count.ToString();
+                iconImage.sprite = obstacleCount.Value.Icon;
+            }
+        }
+    }
 
-                // Set sprite based on obstacle type key
-                switch (obstacleCount.Key)
+    public void UpdateGoalUI(Dictionary<string, DreamBlast.Data.ObstacleCount> obstacleCounts)
+    {
+        foreach (var obstacleCount in obstacleCounts)
+        {
+            // Find child with name of obstacleCount.Key
+            GameObject goalItem = goalPanel.Find(obstacleCount.Key)?.gameObject;
+
+            if (goalItem != null)
+            {
+                TextMeshProUGUI countText = goalItem.transform.Find("CountText").GetComponent<TextMeshProUGUI>();
+                if (obstacleCount.Value.Count > 0)
                 {
-                    case "bo":
-                        iconImage.sprite = boxIconSprite;
-                        break;
-                    case "s":
-                        iconImage.sprite = stoneIconSprite;
-                        break;
-                    case "v":
-                        iconImage.sprite = vaseIconSprite;
-                        break;
-                    default:
-                        Debug.LogWarning("Unrecognized obstacle type: " + obstacleCount.Key);
-                        break;
+                    countText.text = obstacleCount.Value.Count.ToString();
+                }
+                else
+                {
+                    countText.gameObject.SetActive(false);
+                    goalItem.transform.Find("Checkmark").gameObject.SetActive(true);
                 }
             }
         }

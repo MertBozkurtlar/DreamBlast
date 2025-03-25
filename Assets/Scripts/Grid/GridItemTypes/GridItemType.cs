@@ -12,7 +12,7 @@ public abstract class GridItemType : ScriptableObject
 {
     public virtual ItemType itemType { get; }
     [Tooltip("Display name of this item type")]
-    public string typeName;
+    public string typeCode;
     
     [Tooltip("Default sprite for this item type")]
     public Sprite defaultSprite;

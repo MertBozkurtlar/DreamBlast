@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5031ee5b433e540c18a6c69e6855d672, type: 3}
   m_Name: Red
   m_EditorClassIdentifier: 
-  typeName: Red
+  typeCode: r
   defaultSprite: {fileID: 8166710274925509176, guid: 2945732e1c0e744a683810822993f727, type: 3}
   rocketSprite: {fileID: -4162601588504768772, guid: 05cbc1975bf5243e7800ec12f4ab2513, type: 3}
   matchCount: 2
@@ -22,6 +22,6 @@ MonoBehaviour:
   destroyParticles: {fileID: 5590039980662098241, guid: c05187dcc4e69449298f7cbdc0004aac, type: 3}
   destroyParticleMaterial: {fileID: 2100000, guid: c7a5130eb42a447e0af45ca9e70f3f33, type: 2}
   bounceDistance: 0.5
-  bounceDuration: 0.3
-  returnDuration: 0.4
+  bounceDuration: 0.2
+  returnDuration: 0.2
   mergeDuration: 0.2

@@ -6,11 +6,14 @@ namespace DreamBlast.Data
     {
         public string Name { get; private set; }
         public int Count { get; private set; }
+
+        public Sprite Icon { get; private set; }
         
-        public ObstacleCount(string name)
+        public ObstacleCount(string name, Sprite icon)
         {
             Name = name;
             Count = 0;
+            Icon = icon;
         }
         
         public void Increase()

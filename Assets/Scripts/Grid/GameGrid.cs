@@ -12,6 +12,7 @@ public class GameGrid : GridSystem<GridItem>
     [SerializeField] private Vector2 gridOffset;
     [SerializeField] private float paddingPercent;
     [SerializeField] private SpriteRenderer gridBackground;
+    [SerializeField] private float itemMoveDuration = 1f;
     
     private GridItemPool itemPool;
     private GameManager gameManager;
@@ -75,7 +76,7 @@ public class GameGrid : GridSystem<GridItem>
         Vector3 targetPosition = GridToWorldPosition(x, y);
         item.gameObject.transform.DOKill();
         item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
-        item.gameObject.transform.DOMove(targetPosition, 1f)
+        item.gameObject.transform.DOMove(targetPosition, itemMoveDuration)
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
                 if (DOTween.PlayingTweens()?.Count <= 1)
@@ -89,11 +90,7 @@ public class GameGrid : GridSystem<GridItem>
     {
         if (item.IsObstacle())
         {
-            string obstacleCode = "";
-            if (item.Type is BoxType) obstacleCode = "bo";
-            else if (item.Type is StoneType) obstacleCode = "s";
-            else if (item.Type is VaseType) obstacleCode = "v";
-            
+            string obstacleCode = item.Type.typeCode;
             onObstacleDestroyed?.Invoke(obstacleCode);
         }
         

@@ -766,10 +766,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5790298d680c54554a353f9947c8e103, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelJsonFiles:
-  - {fileID: 4900000, guid: 530b3be5b7b8c430fba24ce1dcacfccb, type: 3}
-  - {fileID: 4900000, guid: 9647d371540c743b3813cecfaf2a766d, type: 3}
-  - {fileID: 4900000, guid: 4c50cfac63e3e472ea4225b89b8cc792, type: 3}
   playerProgress: {fileID: 11400000, guid: 35f9beba0ca3f44dcb35d5588ac7f031, type: 2}
   gameSceneName: GameScene
 --- !u!4 &849475629
@@ -926,8 +922,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 559929877}
-  - {fileID: 849475629}
   - {fileID: 521538458}
+  - {fileID: 2124646629}
+  - {fileID: 849475629}
   - {fileID: 1650925591}
   - {fileID: 187843474}
-  - {fileID: 2124646629}

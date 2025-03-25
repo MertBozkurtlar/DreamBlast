@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffa962e5a1fc475ea1f53eb68a17fef, type: 3}
   m_Name: HorizontalRocket
   m_EditorClassIdentifier: 
-  typeName: HorizontalRocket
+  typeCode: hro
   defaultSprite: {fileID: 21300000, guid: 4d1b3ea885067491086f2f6c384f8549, type: 3}
   upgradeCount: 4
   isHorizontal: 1

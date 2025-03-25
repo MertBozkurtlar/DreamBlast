@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5031ee5b433e540c18a6c69e6855d672, type: 3}
   m_Name: Yellow
   m_EditorClassIdentifier: 
-  typeName: Yellow
+  typeCode: y
   defaultSprite: {fileID: -8425141836431729757, guid: 4276753be98bf4d30abf0bf241483849, type: 3}
   rocketSprite: {fileID: 6090080599973395561, guid: 465ffbf6cc6244b1a9d62e38a781536e, type: 3}
   matchCount: 2
@@ -22,6 +22,6 @@ MonoBehaviour:
   destroyParticles: {fileID: 5590039980662098241, guid: c05187dcc4e69449298f7cbdc0004aac, type: 3}
   destroyParticleMaterial: {fileID: 2100000, guid: 3b8bae73e71b54e108620d974d4913bc, type: 2}
   bounceDistance: 0.5
-  bounceDuration: 0.3
-  returnDuration: 0.4
+  bounceDuration: 0.2
+  returnDuration: 0.2
   mergeDuration: 0.2

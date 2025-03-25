@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8599c61c80fa84d9299581d1a37335ba, type: 3}
   m_Name: Stone
   m_EditorClassIdentifier: 
-  typeName: Stone
+  typeCode: s
   defaultSprite: {fileID: 21300000, guid: 632db7d585a494514b3a88e83161162d, type: 3}
   maxHealth: 1
   damagedSprite: {fileID: 0}
