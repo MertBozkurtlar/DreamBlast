@@ -6,7 +6,7 @@ using UnityEngine;
 public class LevelManagerEditor : Editor
 {
     private int levelToLoad = 0;
-    
+    private int levelToSet = 0;
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
@@ -15,23 +15,23 @@ public class LevelManagerEditor : Editor
         
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Level Controls", EditorStyles.boldLabel);
-        
-        if (GUILayout.Button("Restart Level"))
+        levelToSet = EditorGUILayout.IntField("Level Index", levelToSet);
+        if (GUILayout.Button("Set Current Level"))
         {
-            levelManager.RestartLevel();
-        }
-        
-        if (GUILayout.Button("Load Next Level"))
-        {
-            levelManager.LoadNextLevel();
+            levelManager.PlayerProgress.SetCurrentLevel(levelToSet);
         }
         
         EditorGUILayout.Space();
-        
+        EditorGUILayout.LabelField("Load Scene", EditorStyles.boldLabel);
         levelToLoad = EditorGUILayout.IntField("Level Index", levelToLoad);
-        if (GUILayout.Button("Load Specific Level"))
+        if (GUILayout.Button("Start Level"))
         {
-            levelManager.LoadLevel(levelToLoad);
+            levelManager.StartLevel(levelToLoad);
+        }
+
+        if (GUILayout.Button("Load Main Menu"))
+        {
+            levelManager.LoadMainMenu();
         }
     }
 }

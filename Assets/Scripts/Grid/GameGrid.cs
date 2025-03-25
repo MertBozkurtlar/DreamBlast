@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using System;
+
 public class GameGrid : GridSystem<GridItem>
 {
-    
     [Header("Grid Settings")]
     [SerializeField] private int offScreenOffset;
     [SerializeField] private Vector2 itemOffset;
     [SerializeField] private Vector2 gridOffset;
     [SerializeField] private float paddingPercent;
     [SerializeField] private SpriteRenderer gridBackground;
+    
     private GridItemPool itemPool;
+    private GameManager gameManager;
     private float gridScale;
     private Dictionary<GridItem, List<GridItem>> cachedGroups = new Dictionary<GridItem, List<GridItem>>();
     
@@ -21,6 +23,8 @@ public class GameGrid : GridSystem<GridItem>
     public Action onMoveMade;
 
     private bool isProcessingMatches = false;
+    
+    public bool IsProcessingMatches => isProcessingMatches;
 
     public void SetProcessingState(bool isProcessing)
     {
@@ -29,48 +33,52 @@ public class GameGrid : GridSystem<GridItem>
 
     private void Start()
     {
-        itemPool = (GridItemPool) GridItemPool.Instance;
+        StartCoroutine(WaitForDependencies());
     }
 
-    public override void InitializeGrid(Vector2Int dimensions){
+    private IEnumerator WaitForDependencies()
+    {
+        while (GridItemPool.Instance == null || GameManager.Instance == null)
+        {
+            yield return null;
+        }
+        itemPool = GridItemPool.Instance as GridItemPool;
+        gameManager = GameManager.Instance as GameManager;
+    }
+
+    public override void InitializeGrid(Vector2Int dimensions)
+    {
         base.InitializeGrid(dimensions);
 
-        // Set the scale so that the grid fits within the camera bounds with padding
         float cameraHeight = Camera.main.orthographicSize * 2;
         float cameraWidth = cameraHeight * Camera.main.aspect;
         float gridWidth = GridDimensions.x;
         float gridHeight = GridDimensions.y;
 
-        // Limiting factor is the scale of the grid, which is also the "size" of each item
-        // since the original "width" of the items is 1.
         gridScale = Mathf.Min((cameraWidth * (1 - paddingPercent))/ gridWidth, (cameraHeight * (1 - paddingPercent))/ gridHeight);
         gridScale = Mathf.Min(gridScale, 1);
-        // If there is no reason to scale down, I leave it at 1
         transform.localScale = new Vector3(gridScale, gridScale, 1);
 
-        // Set the position so that the grid is centered
         transform.position = new Vector3(-(gridWidth/2) * gridScale + gridOffset.x, -(gridHeight/2) * gridScale + gridOffset.y, 0);
 
-        // Center the grid background
         gridBackground.transform.localPosition = new Vector3(gridWidth/2, gridHeight/2, 0);
-
-        // Sliced sprite size
         gridBackground.size = new Vector2(gridWidth + 0.5f, gridHeight + 0.5f);
     }
 
-    public Vector3 GridToWorldPosition(int x, int y){
+    public Vector3 GridToWorldPosition(int x, int y)
+    {
         return transform.position + new Vector3(gridScale/2 + x * itemOffset.x * gridScale, gridScale/2 + y * itemOffset.y * gridScale, 0);
     }
 
-    public void MoveGameItem(GridItem item, int x, int y){
+    public void MoveGameItem(GridItem item, int x, int y)
+    {
         Vector3 targetPosition = GridToWorldPosition(x, y);
         item.gameObject.transform.DOKill();
         item.gameObject.GetComponent<SpriteRenderer>().sortingOrder = y;
         item.gameObject.transform.DOMove(targetPosition, 1f)
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
-                // Check if this was the last animation
-                if (DOTween.PlayingTweens()?.Count <= 1) // Use 1 because this tween is still counted
+                if (DOTween.PlayingTweens()?.Count <= 1)
                 {
                     isProcessingMatches = false;
                 }
@@ -89,7 +97,6 @@ public class GameGrid : GridSystem<GridItem>
             onObstacleDestroyed?.Invoke(obstacleCode);
         }
         
-        // Call OnItemDestroyed method on the item's type before removing it
         if (item.Type != null)
         {
             item.Type.OnItemDestroyed(item, this);
@@ -120,28 +127,22 @@ public class GameGrid : GridSystem<GridItem>
         
         UpdateAllGroups();
         
-        // After populating and starting animations, check if there are any animations playing
         if (DOTween.PlayingTweens()?.Count == 0)
         {
             isProcessingMatches = false;
         }
     }
 
-     // Places a grid item on the grid at the specified position
     public bool PlaceItemOnGrid(GridItem item, int x, int y, int offScreenOffset = 0)
     {
-        // Put the item on the grid
         if (PutItemAt(item, x, y))
         {
-            // Set up transform
             item.gameObject.transform.SetParent(transform);
             item.gameObject.transform.localScale = new Vector3(1,1,1);
             item.SetGridPosition(new Vector2Int(x, y));
             
-            // Connect events
             item.itemClicked += OnItemClicked;
             
-            // Position item on the grid
             Vector3 targetPosition = GridToWorldPosition(x, y);
             item.gameObject.transform.position = targetPosition + new Vector3(0, offScreenOffset, 0);
             item.gameObject.SetActive(true);
@@ -158,15 +159,13 @@ public class GameGrid : GridSystem<GridItem>
 
     public void OnItemClicked(GridItem item)
     {
-        Debug.Log("Item clicked: " + item.GridPosition);
-
         if (item == null)
         {
             Debug.Log("No item at position: " + item.GridPosition);
             return;
         }
 
-        if(LevelManager.Instance.CurrentState != LevelManager.GameState.Playing)
+        if(gameManager.CurrentState != GameManager.GameState.Playing)
             return;
             
         if (isProcessingMatches || DOTween.PlayingTweens()?.Count > 0)
@@ -175,7 +174,6 @@ public class GameGrid : GridSystem<GridItem>
             return;
         }
         
-        // Only set processing flag for matchable items (not obstacles)
         if (item.Type.itemType != ItemType.Obstacle)
         {
             isProcessingMatches = true;
@@ -189,22 +187,18 @@ public class GameGrid : GridSystem<GridItem>
         for(int x = 0; x != GridDimensions.x; ++x)
         {
             int emptySpot = 0;
-            // Scan from bottom to top, keeping track of the lowest empty spot
             for(int y = 0; y != GridDimensions.y; ++y)
             {
                 if(!IsEmpty(x, y))
                 {
                     GridItem item = GetItemAt(x, y);
                     
-                    // Check if this item should be prevented from falling
                     bool shouldNotFall = !item.CanFall() || IsOnTopOfNonFallableItem(x, y);
                     
-                    // Only items that can fall should be moved
                     if (!shouldNotFall)
                     {
                         if(y != emptySpot)
                         {
-                            // Move item down to the empty spot
                             item.SetGridPosition(new Vector2Int(x, emptySpot));
                             MoveItemTo(x, y, x, emptySpot);
                             MoveGameItem(item, x, emptySpot);
@@ -213,8 +207,6 @@ public class GameGrid : GridSystem<GridItem>
                     }
                     else
                     {
-                        // If the item can't fall and there's an empty spot below,
-                        // the empty spot should be after this item
                         if (y > emptySpot)
                         {
                             emptySpot = y + 1;
@@ -228,17 +220,14 @@ public class GameGrid : GridSystem<GridItem>
             }
         }
         
-        // After collapse is done, check if there are any animations playing
         if (DOTween.PlayingTweens()?.Count == 0)
         {
             isProcessingMatches = false;
         }
     }
     
-    // Add method to apply blast damage to obstacles in adjacent cells
     public void ApplyBlastDamage(Vector2Int position, int damage)
     {
-        // Get adjacent positions (not diagonals)
         Vector2Int[] directions = new Vector2Int[] {
             Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
         };
@@ -260,7 +249,6 @@ public class GameGrid : GridSystem<GridItem>
         }
     }
     
-    // Method to reset blast damage flags for vases
     public void ResetBlastFlags()
     {
         for (int y = 0; y < GridDimensions.y; y++)
@@ -280,12 +268,6 @@ public class GameGrid : GridSystem<GridItem>
         }
     }
 
-    /*
-    * I have implemented a cache mechanism to cache all connected items with the same type.
-    * This way I can share the functionality between the Matching and the Special Eligibility checks.
-    *
-    * It is kind of similar to an Union-Find, but I am still using a BFS and just caching the results.
-    */
     public List<GridItem> GetConnectedGroup(GridItem startItem)
     {
         if (cachedGroups.ContainsKey(startItem))
@@ -350,7 +332,6 @@ public class GameGrid : GridSystem<GridItem>
         }
     }    
 
-    // Method to reset rocket damage flags for vases
     public void ResetRocketDamageFlags()
     {
         for (int y = 0; y < GridDimensions.y; y++)
@@ -370,7 +351,6 @@ public class GameGrid : GridSystem<GridItem>
         }
     }
 
-    // Add method to apply rocket damage to obstacles in its path
     public void ApplyRocketDamage(List<Vector2Int> positions, int damage)
     {
         foreach (Vector2Int pos in positions)
@@ -388,35 +368,27 @@ public class GameGrid : GridSystem<GridItem>
             }
         }
         
-        // Reset rocket damage flags after all damage is applied
         ResetRocketDamageFlags();
     }
 
-    // Helper method to check if an item is positioned directly above a non-fallable item
     private bool IsOnTopOfNonFallableItem(int x, int y)
     {
-        // If we're at the bottom row, there's nothing below
         if (y == 0) return false;
         
-        // Check the cell directly below this one
         GridItem itemBelow = GetItemAt(x, y - 1);
-        
-        // If there's an item below and it can't fall, this item should also not fall
         return itemBelow != null && !itemBelow.CanFall();
     }
 
-    // Helper method to check if a position is below a non-fallable item
     private bool IsBelowNonFallableItem(int x, int y)
     {
-        // Check all positions above this one in the same column
         for (int aboveY = y + 1; aboveY < GridDimensions.y; aboveY++)
         {
             GridItem itemAbove = GetItemAt(x, aboveY);
             if (itemAbove != null && !itemAbove.CanFall())
             {
-                return true; // Found a non-fallable item above this position
+                return true;
             }
         }
-        return false; // No non-fallable items above this position
+        return false;
     }
 }

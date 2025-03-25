@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fc89c23b895441f6a78d257a12e9c93, type: 3}
+  m_Name: PlayerProgress
+  m_EditorClassIdentifier: 
+  levelJsonFiles:
+  - {fileID: 4900000, guid: 530b3be5b7b8c430fba24ce1dcacfccb, type: 3}
+  - {fileID: 4900000, guid: 9647d371540c743b3813cecfaf2a766d, type: 3}
+  - {fileID: 4900000, guid: 4c50cfac63e3e472ea4225b89b8cc792, type: 3}
+  - {fileID: 4900000, guid: b99a9015f9df94960a80cc5dc4e943b9, type: 3}
+  - {fileID: 4900000, guid: 2ac4f1f04aa694e69af1a1d84ceaa5be, type: 3}
+  - {fileID: 4900000, guid: ef50fa00f36fb4be6b6fa4ab393d6ce7, type: 3}
+  - {fileID: 4900000, guid: 3a9673eb805954454ac8cc59c84d411e, type: 3}
+  - {fileID: 4900000, guid: 0359d810f152142cf886af173126d890, type: 3}
+  - {fileID: 4900000, guid: baf062216e3df4314bbd15d976b630c0, type: 3}
+  - {fileID: 4900000, guid: fee12a2f88bb74c2898914fc97768d9c, type: 3}
+  currentLevel: 9

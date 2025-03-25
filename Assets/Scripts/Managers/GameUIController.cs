@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using DreamBlast.Data;
 
 public class GameUIController : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class GameUIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI moveCountText;
 
     // This method can be called by the LevelManager or by a GameManager event when the level is loaded or an obstacle changes.
-    public void UpdateGoalUI(Dictionary<string, LevelManager.ObstacleCount> obstacleCounts)
+    public void UpdateGoalUI(Dictionary<string, DreamBlast.Data.ObstacleCount> obstacleCounts)
     {
         // Clear previous items
         foreach (Transform child in goalPanel)
@@ -60,5 +61,13 @@ public class GameUIController : MonoBehaviour
     public void UpdateMoveCountUI(int moveCount)
     {
         moveCountText.text = moveCount.ToString();
+    }
+
+    public void TryAgainButtonClicked(){
+        GameManager.Instance.RestartLevel();
+    }
+
+    public void CloseButtonClicked(){
+        LevelManager.Instance.LoadMainMenu();
     }
 }

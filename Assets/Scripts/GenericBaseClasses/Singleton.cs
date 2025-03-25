@@ -23,11 +23,15 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     {
         if(instance != null)
         {
-            Debug.LogWarning("An instance of " + typeof(T) + " already exists.  Self-destructing.");
-            Destroy(this.gameObject);
+            Debug.LogWarning("An instance of " + typeof(T) + " already exists. Self-destructing.");
+            // First disable this component to prevent any further execution
+            enabled = false;
+            // Then destroy the entire GameObject
+            Destroy(gameObject);
+            return;
         }
+        
         instance = this as T;
-
         Init();
     }
 
@@ -35,9 +39,15 @@ public abstract class Singleton<T> : MonoBehaviour where T : Singleton<T>
     protected void OnDestroy()
     {
         if(this == instance)
+        {
             instance = null;
+        }
+        Destroy();
     }
 
     // Init will replace the functionality of Awake()
     protected virtual void Init(){}
+
+    // Destroy will replace the functionality of OnDestroy()
+    protected virtual void Destroy(){}
 }
